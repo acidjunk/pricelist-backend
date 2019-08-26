@@ -99,7 +99,7 @@ class ProductAdminView(ModelView):
 
 
 class BaseAdminView(ModelView):
-    column_display_pk = True
+    # column_display_pk = True
 
     # Prevent administration of Tags unless the currently logged-in user has the "admin" role
     def is_accessible(self):
