@@ -1,3 +1,4 @@
+import qrcode
 from flask import flash
 from flask_admin.actions import action
 from flask_admin.contrib.sqla import ModelView
@@ -66,8 +67,20 @@ class RolesAdminView(ModelView):
             return False
 
 
+def random_qr(url='www.google.com'):
+    qr = qrcode.QRCode(version=1,
+                       error_correction=qrcode.constants.ERROR_CORRECT_L,
+                       box_size=10,
+                       border=4)
+
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image()
+    return img
+
+
 class CategoryAdminView(ModelView):
-    column_list = ['shop', 'name', 'description']
+    column_list = ['shop', 'name', 'description', 'qr']
     column_default_sort = ('name', False)
     column_searchable_list = ('id', 'name', 'description')
     can_set_page_size = True
@@ -80,6 +93,13 @@ class CategoryAdminView(ModelView):
                 return True
         except:
             return False
+
+    def _list_thumbnail(view, context, model, name):
+        return Markup(f'<img src="/qr/shop/{model.shop.id}/category/{model.id}">')
+
+    column_formatters = {
+        'qr': _list_thumbnail
+    }
 
 
 class ProductAdminView(ModelView):

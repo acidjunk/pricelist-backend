@@ -1,13 +1,17 @@
+import io
+
 import datetime
 import hashlib
 import os
+
+import flask
 import structlog
 
 # from admin_views import (
 #     UserAdminView, RiffExerciseAdminView, RolesAdminView, RiffAdminView, BaseAdminView,
 #     UserPreferenceAdminView, InstrumentAdminView, RiffExerciseItemAdminView, BackingTrackAdminView
 # )
-from admin_views import CategoryAdminView, ProductAdminView, RolesAdminView, BaseAdminView, UserAdminView
+from admin_views import CategoryAdminView, ProductAdminView, RolesAdminView, BaseAdminView, UserAdminView, random_qr
 
 from flask import Flask, url_for, current_app
 from flask_admin import Admin
@@ -108,6 +112,15 @@ def on_user_registered(sender, user, confirm_token):
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
+
+
+@app.route('/qr/shop/<shop_id>/category/<category_id>')
+def get_qr_img(shop_id, category_id):
+    img_buf = io.BytesIO()
+    img = random_qr(url=f'https://www.prijslijst.info/shop/{shop_id}/category/{category_id}')
+    img.save(img_buf)
+    img_buf.seek(0)
+    return flask.send_file(img_buf, mimetype='image/png')
 
 
 # Views
