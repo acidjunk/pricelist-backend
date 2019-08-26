@@ -67,7 +67,7 @@ class RolesAdminView(ModelView):
 
 
 class CategoryAdminView(ModelView):
-    column_list = ['id', 'name', 'description']
+    column_list = ['shop', 'name', 'description']
     column_default_sort = ('name', False)
     column_searchable_list = ('id', 'name', 'description')
     can_set_page_size = True
@@ -82,8 +82,8 @@ class CategoryAdminView(ModelView):
             return False
 
 
-class ItemAdminView(ModelView):
-    column_list = ['id', 'name', 'price', 'created_at']
+class ProductAdminView(ModelView):
+    column_list = ['name', 'product_categories', 'created_at']
     column_default_sort = ('created_at', True)
     column_searchable_list = ('id', 'name', 'created_at')
     can_set_page_size = True

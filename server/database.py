@@ -69,17 +69,6 @@ class Tag(db.Model):
         return self.name
 
 
-class Category(db.Model):
-    __tablename__ = 'categories'
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    name = Column(String(255), unique=True, index=True)
-    description = Column(String(255), unique=True, index=True)
-    category_shops = relationship("Shop", secondary='shop_categories')
-
-    def __repr__(self):
-        return self.name
-
-
 class Shop(db.Model):
     __tablename__ = 'shops'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -90,46 +79,64 @@ class Shop(db.Model):
         return self.name
 
 
-class ShopCategory(db.Model):
-    __tablename__ = 'shop_categories'
+class Category(db.Model):
+    __tablename__ = 'categories'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    category_id = Column('item_id', UUID(as_uuid=True), ForeignKey('categories.id'), index=True)
+    name = Column(String(255), unique=True, index=True)
+    description = Column(String(255), unique=True, index=True)
     shop_id = Column('shop_id', UUID(as_uuid=True), ForeignKey('shops.id'), index=True)
-    category = db.relationship("Category", lazy=True)
     shop = db.relationship("Shop", lazy=True)
 
     def __repr__(self):
-        # add shop also?
-        return self.category.name
+        return f"{self.shop.name}: {self.name}"
 
 
-class Item(db.Model):
-    __tablename__ = 'items'
+class Product(db.Model):
+    __tablename__ = 'products'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), unique=True, index=True)
     description = Column(String())
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    price = Column(Float, nullable=True)
-    item_tags = relationship("Tag", secondary='item_tags')
-    category_id = Column('category_id', UUID(as_uuid=True), ForeignKey('categories.id'))
-    category = relationship("Category")
+    product_tags = relationship("Tag", secondary='products_to_tags')
+    product_categories = relationship("Category", secondary='products_to_categories')
 
     def __repr__(self):
-        return '<Item %r, id:%s>' % (self.name, self.id)
+        return '<Products %r, id:%s>' % (self.name, self.id)
+
+
+class Price(db.Model):
+    __tablename__ = 'prices'
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    quantity = Column('quantity', Integer(), default=1)
+    price = Column("price", Float())
+    product_id = Column('product_id', UUID(as_uuid=True), ForeignKey('products.id'), index=True)
+    product = db.relationship("Product", lazy=True)
+
+
+class ProductToCategory(db.Model):
+    __tablename__ = 'products_to_categories'
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    visible = Column('visible', Boolean(), default=True)
+    product_id = Column('product_id', UUID(as_uuid=True), ForeignKey('products.id'), index=True)
+    category_id = Column('category_id', UUID(as_uuid=True), ForeignKey('categories.id'), index=True)
+    product = db.relationship("Product", lazy=True)
+    category = db.relationship("Category", lazy=True)
+
+    def __repr__(self):
+        return self.category.name
 
 
 # Setup tagging for all resources that need it
-class ItemTag(db.Model):
-    __tablename__ = 'item_tags'
+class ProductToTag(db.Model):
+    __tablename__ = 'products_to_tags'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     amount = Column('amount', Integer(), nullable=True)
-    item_id = Column('item_id', UUID(as_uuid=True), ForeignKey('items.id'), index=True)
+    product_id = Column('product_id', UUID(as_uuid=True), ForeignKey('products.id'), index=True)
     tag_id = Column('tag_id', UUID(as_uuid=True), ForeignKey('tags.id'), index=True)
-    item = db.relationship("Item", lazy=True)
+    product = db.relationship("Product", lazy=True)
     tag = db.relationship("Tag", lazy=True)
 
     def __repr__(self):
-        print(self.tag)
         return self.tag.name
 
 

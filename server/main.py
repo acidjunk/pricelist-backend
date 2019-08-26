@@ -7,7 +7,7 @@ import structlog
 #     UserAdminView, RiffExerciseAdminView, RolesAdminView, RiffAdminView, BaseAdminView,
 #     UserPreferenceAdminView, InstrumentAdminView, RiffExerciseItemAdminView, BackingTrackAdminView
 # )
-from admin_views import CategoryAdminView, ItemAdminView, RolesAdminView, BaseAdminView, UserAdminView
+from admin_views import CategoryAdminView, ProductAdminView, RolesAdminView, BaseAdminView, UserAdminView
 
 from flask import Flask, url_for, current_app
 from flask_admin import Admin
@@ -20,8 +20,8 @@ from flask_migrate import Migrate
 from flask_security import (Security, user_registered, utils)
 
 from database import (
-    db, Tag, Item, Category, Shop, User, Role, user_datastore,
-    ItemTag
+    db, Tag, Product, Category, Shop, User, Role, user_datastore, ProductToTag, ProductToCategory,
+    Price
 )
 from security import ExtendedRegisterForm, ExtendedJSONRegisterForm
 
@@ -114,13 +114,15 @@ def load_user(user_id):
 api.init_app(app)
 db.init_app(app)
 mail.init_app(app)
+admin.add_view(BaseAdminView(Shop, db.session))
 admin.add_view(CategoryAdminView(Category, db.session))
-admin.add_view(CategoryAdminView(Shop, db.session))
-admin.add_view(ItemAdminView(Item, db.session))
+admin.add_view(ProductAdminView(Product, db.session))
+admin.add_view(BaseAdminView(Price, db.session))
 admin.add_view(UserAdminView(User, db.session))
 admin.add_view(RolesAdminView(Role, db.session))
 admin.add_view(BaseAdminView(Tag, db.session))
-admin.add_view(BaseAdminView(ItemTag, db.session))
+admin.add_view(BaseAdminView(ProductToTag, db.session))
+admin.add_view(BaseAdminView(ProductToCategory, db.session))
 
 migrate = Migrate(app, db)
 logger.info("Ready loading admin views and api")

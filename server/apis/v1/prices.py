@@ -1,14 +1,14 @@
 import structlog
 from database import db
 from flask_restplus import Namespace, Resource, fields, marshal_with
-from database import Category, Item, Shop
+from database import Category, Product, Shop
 
 logger = structlog.get_logger(__name__)
 
 api = Namespace("prices", description="Pricelist related operations")
 
-item_serializer = api.model("Item", {
-    "name": fields.String(required=True, description="Item name"),
+product_serializer = api.model("Product", {
+    "name": fields.String(required=True, description="Product name"),
 })
 
 category_serializer = api.model("Category", {
@@ -40,11 +40,11 @@ class CategoryResourceList(Resource):
         return Category.query.all()
 
 
-@api.route('/category')
-@api.doc("Show all riffs to users with sufficient rights. Provides the ability to filter on riff status and to search.")
-class ItemResourceList(Resource):
+@api.route('/products')
+@api.doc("Show all products to.")
+class ProductResourceList(Resource):
 
-    @marshal_with(item_serializer)
+    @marshal_with(product_serializer)
     def get(self):
         # Todo: return items from selected shop/category
-        return Item.query.all()
+        return Product.query.all()
