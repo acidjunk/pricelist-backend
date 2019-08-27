@@ -1,35 +1,34 @@
-import qrcode
-from flask import flash
-from flask_admin.actions import action
 from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user
 from flask_security import utils
 from markupsafe import Markup
-from sqlalchemy import String
 from wtforms import PasswordField
 
 
-class UserAdminView(ModelView):
+class AuthModelMixin(ModelView):
+    def is_accessible(self):
+        # Prevent administration of Model unless the currently logged-in user has the "admin" role
+        if not current_user:
+            return False
+        try:
+            if "admin" in current_user.roles:
+                return True
+        except AttributeError:
+            return False
+
+
+class UserAdminView(AuthModelMixin):
+    column_display_pk = True
     # Don't display the password on the list of Users
-    column_exclude_list = list = ('password',)
-    column_default_sort = ('created_at', True)
+    column_exclude_list = list = ("password",)
+    column_default_sort = ("created_at", True)
 
     # Don't include the standard password field when creating or editing a User (but see below)
-    form_excluded_columns = ('password',)
+    form_excluded_columns = ("password",)
 
     # Automatically display human-readable names for the current and available Roles when creating or editing a User
     column_auto_select_related = True
     can_set_page_size = True
-
-    # Prevent administration of Users unless the currently logged-in user has the "admin" role
-    def is_accessible(self):
-        if not current_user:
-            return False
-        try:
-            if 'admin' in current_user.roles:
-                return True
-        except:
-            return False
 
     # On the form for creating or editing a User, don't display a field corresponding to the model's password field.
     # There are two reasons for this. First, we want to encrypt the password before storing in the database. Second,
@@ -40,7 +39,7 @@ class UserAdminView(ModelView):
         form_class = super(UserAdminView, self).scaffold_form()
 
         # Add a password field, naming it "password2" and labeling it "New Password".
-        form_class.password2 = PasswordField('New Password')
+        form_class.password2 = PasswordField("New Password")
         return form_class
 
     # This callback executes when the user saves changes to a newly-created or edited User -- before the changes are
@@ -53,80 +52,46 @@ class UserAdminView(ModelView):
             model.password = utils.hash_password(model.password2)
 
 
-class RolesAdminView(ModelView):
+class RolesAdminView(AuthModelMixin):
     column_display_pk = True
 
-    # Prevent administration of Roles unless the currently logged-in user has the "admin" role
-    def is_accessible(self):
-        if not current_user:
-            return False
-        try:
-            if 'admin' in current_user.roles:
-                return True
-        except:
-            return False
 
-
-def random_qr(url='www.google.com'):
-    qr = qrcode.QRCode(version=1,
-                       error_correction=qrcode.constants.ERROR_CORRECT_L,
-                       box_size=10,
-                       border=4)
-
-    qr.add_data(url)
-    qr.make(fit=True)
-    img = qr.make_image()
-    return img
-
-
-class CategoryAdminView(ModelView):
-    column_list = ['shop', 'name', 'description', 'qr']
-    column_default_sort = ('name', False)
-    column_searchable_list = ('id', 'name', 'description')
+class CategoryAdminView(AuthModelMixin):
+    column_list = ["shop", "name", "description", "qr"]
+    column_default_sort = ("name", False)
+    column_searchable_list = ("id", "name", "description")
     can_set_page_size = True
-
-    def is_accessible(self):
-        if not current_user:
-            return False
-        try:
-            if 'admin' in current_user.roles:
-                return True
-        except:
-            return False
 
     def _list_thumbnail(view, context, model, name):
-        return Markup(f'<img src="/qr/shop/{model.shop.id}/category/{model.id}">')
+        path = f"/qr/shop/{model.shop.id}/category/{model.id}"
+        if context["return_url"] == "/admin/category/":
+            return Markup(f'<img src="{path}" width="150">')
+        return Markup(f'<img src="{path}">')
 
-    column_formatters = {
-        'qr': _list_thumbnail
-    }
+    column_formatters = {"qr": _list_thumbnail}
 
 
-class ProductAdminView(ModelView):
-    column_list = ['name', 'product_categories', 'created_at']
-    column_default_sort = ('created_at', True)
-    column_searchable_list = ('id', 'name', 'created_at')
+class ShopAdminView(AuthModelMixin):
+    column_list = ["name", "description", "qr"]
+    column_default_sort = ("name", False)
+    column_searchable_list = ("id", "name", "description")
     can_set_page_size = True
 
-    def is_accessible(self):
-        if not current_user:
-            return False
-        try:
-            if 'admin' in current_user.roles:
-                return True
-        except:
-            return False
+    def _list_thumbnail(view, context, model, name):
+        path = f"/qr/shop/{model.shop.id}"
+        if context["return_url"] == "/admin/shop/":
+            return Markup(f'<img src="{path}" width="150">')
+        return Markup(f'<img src="{path}">')
+
+    column_formatters = {"qr": _list_thumbnail}
 
 
-class BaseAdminView(ModelView):
-    # column_display_pk = True
+class ProductAdminView(AuthModelMixin):
+    column_list = ["name", "product_categories", "created_at"]
+    column_default_sort = ("created_at", True)
+    column_searchable_list = ("id", "name", "created_at")
+    can_set_page_size = True
 
-    # Prevent administration of Tags unless the currently logged-in user has the "admin" role
-    def is_accessible(self):
-        if not current_user:
-            return False
-        try:
-            if 'admin' in current_user.roles:
-                return True
-        except:
-            return False
+
+class BaseAdminView(AuthModelMixin):
+    pass
