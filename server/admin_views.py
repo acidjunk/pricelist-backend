@@ -78,7 +78,7 @@ class ShopAdminView(AuthModelMixin):
     can_set_page_size = True
 
     def _list_thumbnail(view, context, model, name):
-        path = f"/qr/shop/{model.shop.id}"
+        path = f"/qr/shop/{model.id}"
         if context["return_url"] == "/admin/shop/":
             return Markup(f'<img src="{path}" width="150">')
         return Markup(f'<img src="{path}">')
@@ -91,6 +91,7 @@ class ProductAdminView(AuthModelMixin):
     column_default_sort = ("created_at", True)
     column_searchable_list = ("id", "name", "created_at")
     can_set_page_size = True
+    form_excluded_columns = ["product_to_tags"]
 
 
 class BaseAdminView(AuthModelMixin):

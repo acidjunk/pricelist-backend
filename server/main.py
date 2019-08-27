@@ -3,7 +3,7 @@ import os
 
 import flask
 import structlog
-from admin_views import BaseAdminView, CategoryAdminView, ProductAdminView, RolesAdminView, UserAdminView
+from admin_views import BaseAdminView, CategoryAdminView, ProductAdminView, RolesAdminView, ShopAdminView, UserAdminView
 from apis import api
 from database import (
     Category,
@@ -76,6 +76,8 @@ app.config["MAIL_USE_SSL"] = True
 app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME") if os.getenv("MAIL_USERNAME") else "no-reply@example.com"
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD") if os.getenv("MAIL_PASSWORD") else "somepassword"
 
+app.config["FRONTEND_URI"] = os.getenv("FRONTEND_URI") if os.getenv("FRONTEND_URI") else "www.example.com"
+
 # Setup Flask-Security with extended user registration
 security = Security(
     app, user_datastore, register_form=ExtendedRegisterForm, confirm_register_form=ExtendedJSONRegisterForm
@@ -104,22 +106,42 @@ def on_user_registered(sender, user, confirm_token):
     db.session.commit()
 
 
-# @login_manager.request_loader
-# def load_user_from_request(request):
-#     # Todo: implement stuff?
-#     # finally, return None if both methods did not login the user
-#     return None
-
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
 
 
-@app.route("/qr/shop/<shop_id>/category/<category_id>")
-def get_qr_image(shop_id, category_id):
+@app.route("/qr/shop/<shop_id>")
+def get_qr_shop_image(shop_id):
+    logger.info("Serving generated Shop QR images", shop_id=shop_id)
     img_buf = io.BytesIO()
-    img = generate_qr_image(url=f"https://www.prijslijst.info/shop/{shop_id}/category/{category_id}")
+    url = f"{app.config['FRONTEND_URI']}/shop/{shop_id}"
+    logger.debug("Shop QR URL", url=url)
+    img = generate_qr_image(url=url)
+    img.save(img_buf)
+    img_buf.seek(0)
+    return flask.send_file(img_buf, mimetype="image/png")
+
+
+@app.route("/qr/shop/<shop_id>/category/<category_id>")
+def get_qr_category_image(shop_id, category_id):
+    logger.info("Serving generated Category QR images", shop_id=shop_id, category_id=category_id)
+    img_buf = io.BytesIO()
+    url = f"{app.config['FRONTEND_URI']}/shop/{shop_id}/category/{category_id}"
+    logger.debug("Category QR URL", url=url)
+    img = generate_qr_image(url=url)
+    img.save(img_buf)
+    img_buf.seek(0)
+    return flask.send_file(img_buf, mimetype="image/png")
+
+
+@app.route("/qr/shop/<shop_id>/category/<category_id>/product/<product_id>")
+def get_qr_product_image(shop_id, category_id, product_id):
+    logger.info("Serving generated Product QR images", shop_id=shop_id, category_id=category_id, product_id=product_id)
+    img_buf = io.BytesIO()
+    url = f"{app.config['FRONTEND_URI']}/shop/{shop_id}/category/{category_id}/product/{product_id}"
+    logger.debug("Product QR URL", url=url)
+    img = generate_qr_image(url=url)
     img.save(img_buf)
     img_buf.seek(0)
     return flask.send_file(img_buf, mimetype="image/png")
@@ -129,7 +151,7 @@ def get_qr_image(shop_id, category_id):
 api.init_app(app)
 db.init_app(app)
 mail.init_app(app)
-admin.add_view(BaseAdminView(Shop, db.session))
+admin.add_view(ShopAdminView(Shop, db.session))
 admin.add_view(CategoryAdminView(Category, db.session))
 admin.add_view(ProductAdminView(Product, db.session))
 admin.add_view(BaseAdminView(Price, db.session))

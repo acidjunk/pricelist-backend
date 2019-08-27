@@ -95,7 +95,9 @@ class Product(db.Model):
     description = Column(String())
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     product_tags = relationship("Tag", secondary="products_to_tags")
+    product_to_tags = relationship("ProductToTag")
     product_categories = relationship("Category", secondary="products_to_categories")
+    product_prices = relationship("Price")
 
     def __repr__(self):
         return "<Products %r, id:%s>" % (self.name, self.id)
@@ -128,14 +130,14 @@ class ProductToCategory(db.Model):
 class ProductToTag(db.Model):
     __tablename__ = "products_to_tags"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    amount = Column("amount", Integer(), nullable=True)
+    amount = Column("amount", Integer(), default=0)
     product_id = Column("product_id", UUID(as_uuid=True), ForeignKey("products.id"), index=True)
     tag_id = Column("tag_id", UUID(as_uuid=True), ForeignKey("tags.id"), index=True)
     product = db.relationship("Product", lazy=True)
     tag = db.relationship("Tag", lazy=True)
 
     def __repr__(self):
-        return self.tag.name
+        return f"{self.tag.name}: {self.amount}%"
 
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
