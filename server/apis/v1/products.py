@@ -6,12 +6,11 @@ logger = structlog.get_logger(__name__)
 
 api = Namespace("products", description="Product related operations")
 
-
 price_fields = {"id": fields.String, "quantity": fields.Integer, "unit": fields.String, "price": fields.Float}
 
 tag_fields = {"id": fields.String, "name": fields.String, "amount": fields.Integer}
 
-product_serializer = api.model(
+product_marshaller = api.model(
     "Product",
     {
         "id": fields.String(required=True),
@@ -24,11 +23,20 @@ product_serializer = api.model(
     },
 )
 
+shop_marshaller = api.model("Shop", {"id": fields.String, "name": fields.String})
+category_marshaller = api.model("Category", {"id": fields.String, "name": fields.String})
+
+product_list_fields = {
+    "shop": fields.Nested(shop_marshaller),
+    "category": fields.Nested(category_marshaller),
+    "products": fields.List(fields.Nested(product_marshaller)),
+}
+
 
 @api.route("/shop/<shop_id>/category/<category_id>")
 @api.doc("Show all products belonging to provided shop_id and category_id.")
 class ProductResourceList(Resource):
-    @marshal_with(product_serializer)
+    @marshal_with(product_list_fields)
     def get(self, shop_id, category_id):
         # Todo: return items from selected shop/category
         category = Category.query.filter_by(id=category_id).first()
@@ -42,6 +50,4 @@ class ProductResourceList(Resource):
                 {"id": price.id, "quantity": price.quantity, "unit": price.unit, "price": price.price}
                 for price in product.product_prices
             ]
-            product.shop = shop.name
-            product.category = category.name
-        return products
+        return {"shop": shop, "category": category, "products": products}
