@@ -1,5 +1,5 @@
 import structlog
-from database import Category, Product, Shop
+from database import Category, Product, ProductToCategory, Shop
 from flask_restplus import Namespace, Resource, fields, marshal_with
 
 logger = structlog.get_logger(__name__)
@@ -33,7 +33,7 @@ class ProductResourceList(Resource):
         # Todo: return items from selected shop/category
         category = Category.query.filter_by(id=category_id).first()
         shop = Shop.query.filter_by(id=shop_id).first()
-        products = Product.query.filter(Category.id == category_id).all()
+        products = Product.query.join(ProductToCategory).filter(ProductToCategory.category_id == category_id).all()
         for product in products:
             product.tags = [
                 {"id": tag.tag.id, "name": tag.tag.name, "amount": tag.amount} for tag in product.product_to_tags

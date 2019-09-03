@@ -64,9 +64,10 @@ class CategoryAdminView(AuthModelMixin):
 
     def _list_thumbnail(view, context, model, name):
         path = f"/qr/shop/{model.shop.id}/category/{model.id}"
+        url = f"https://www.prijslijst.info/shop/{model.shop.id}/category/{model.id}"
         if context["return_url"] == "/admin/category/":
-            return Markup(f'<img src="{path}" width="150">')
-        return Markup(f'<img src="{path}">')
+            return Markup(f'<a href="{url}" target="_blanc"><img src="{path}" width="150"></a>')
+        return Markup(f'<a href="{url}" target="_blanc"><img src="{path}"></a>')
 
     column_formatters = {"qr": _list_thumbnail}
 
@@ -79,9 +80,10 @@ class ShopAdminView(AuthModelMixin):
 
     def _list_thumbnail(view, context, model, name):
         path = f"/qr/shop/{model.id}"
+        url = f"https://www.prijslijst.info/shop/{model.id}"
         if context["return_url"] == "/admin/shop/":
-            return Markup(f'<img src="{path}" width="150">')
-        return Markup(f'<img src="{path}">')
+            return Markup(f'<a href="{url}" target="_blanc"><img src="{path}" width="150"></a>')
+        return Markup(f'<a href="{url}" target="_blanc"><img src="{path}"></a>')
 
     column_formatters = {"qr": _list_thumbnail}
 
@@ -91,7 +93,7 @@ class ProductAdminView(AuthModelMixin):
     column_default_sort = ("created_at", True)
     column_searchable_list = ("id", "name", "created_at")
     can_set_page_size = True
-    form_excluded_columns = ["product_to_tags"]
+    form_excluded_columns = ["product_to_tags", "product_prices"]
 
 
 class BaseAdminView(AuthModelMixin):

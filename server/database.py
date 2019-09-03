@@ -97,6 +97,7 @@ class Product(db.Model):
     product_tags = relationship("Tag", secondary="products_to_tags")
     product_to_tags = relationship("ProductToTag")
     product_categories = relationship("Category", secondary="products_to_categories")
+    # product_to_categories = relationship("ProductToCategory")
     product_prices = relationship("Price")
 
     def __repr__(self):
