@@ -75,65 +75,40 @@ class Shop(db.Model):
         return self.name
 
 
-class Category(db.Model):
-    __tablename__ = "categories"
+class Kind(db.Model):
+    __tablename__ = "kinds"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), unique=True, index=True)
-    description = Column(String(255), unique=True, index=True)
-    shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
-    shop = db.relationship("Shop", lazy=True)
-
-    def __repr__(self):
-        return f"{self.shop.name}: {self.name}"
-
-
-class Product(db.Model):
-    __tablename__ = "products"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    internal_product_id = Column(String(255), nullable=True)
-    name = Column(String(255), unique=True, index=True)
-    description = Column(String())
+    short_description_nl = Column(String())
+    description_nl = Column(String())
+    short_description_en = Column(String())
+    description_en = Column(String())
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    product_tags = relationship("Tag", secondary="products_to_tags")
-    product_to_tags = relationship("ProductToTag")
-    product_categories = relationship("Category", secondary="products_to_categories")
-    product_prices = relationship("Price")
+    product_tags = relationship("Tag", secondary="kinds_to_tags")
+    product_to_tags = relationship("KindToTag")
 
     def __repr__(self):
-        return "<Products %r, id:%s>" % (self.name, self.id)
+        return "<Kinds %r, id:%s>" % (self.name, self.id)
 
 
 class Price(db.Model):
     __tablename__ = "prices"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    quantity = Column("quantity", Integer(), default=1)
-    unit = Column("unit", String(255), nullable=True)
-    price = Column("price", Float())
-    product_id = Column("product_id", UUID(as_uuid=True), ForeignKey("products.id"), index=True)
-    product = db.relationship("Product", lazy=True)
-
-
-class ProductToCategory(db.Model):
-    __tablename__ = "products_to_categories"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    visible = Column("visible", Boolean(), default=True)
-    product_id = Column("product_id", UUID(as_uuid=True), ForeignKey("products.id"), index=True)
-    category_id = Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id"), index=True)
-    product = db.relationship("Product", lazy=True)
-    category = db.relationship("Category", lazy=True)
-
-    def __repr__(self):
-        return self.category.name
+    internal_product_id = Column(String(255), nullable=True)
+    half = Column("half", Float(), nullable=True)
+    one = Column("one", Float(), nullable=True)
+    five = Column("five", Float(), nullable=True)
+    joint = Column("joint", Float(), nullable=True)
 
 
 # Setup tagging for all resources that need it
-class ProductToTag(db.Model):
-    __tablename__ = "products_to_tags"
+class KindToTag(db.Model):
+    __tablename__ = "kinds_to_tags"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     amount = Column("amount", Integer(), default=0)
-    product_id = Column("product_id", UUID(as_uuid=True), ForeignKey("products.id"), index=True)
+    kind_id = Column("kind_id", UUID(as_uuid=True), ForeignKey("kinds.id"), index=True)
     tag_id = Column("tag_id", UUID(as_uuid=True), ForeignKey("tags.id"), index=True)
-    product = db.relationship("Product", lazy=True)
+    kind = db.relationship("Kind", lazy=True)
     tag = db.relationship("Tag", lazy=True)
 
     def __repr__(self):
