@@ -5,7 +5,7 @@ import flask
 import structlog
 from admin_views import BaseAdminView, KindAdminView, RolesAdminView, ShopAdminView, UserAdminView
 from apis import api
-from database import Flavor, Kind, Price, Role, Shop, Tag, User, db, user_datastore
+from database import Flavor, Kind, KindToFlavor, KindToTag, Price, Role, Shop, Tag, User, db, user_datastore
 from flask import Flask, url_for
 from flask_admin import Admin
 from flask_admin import helpers as admin_helpers
@@ -140,16 +140,14 @@ api.init_app(app)
 db.init_app(app)
 mail.init_app(app)
 admin.add_view(ShopAdminView(Shop, db.session))
-# admin.add_view(CategoryAdminView(Category, db.session))
-# admin.add_view(ProductAdminView(Product, db.session))
 admin.add_view(KindAdminView(Kind, db.session))
 admin.add_view(BaseAdminView(Price, db.session))
 admin.add_view(UserAdminView(User, db.session))
 admin.add_view(RolesAdminView(Role, db.session))
 admin.add_view(BaseAdminView(Tag, db.session))
 admin.add_view(BaseAdminView(Flavor, db.session))
-# admin.add_view(BaseAdminView(ProductToTag, db.session))
-# admin.add_view(BaseAdminView(ProductToCategory, db.session))
+admin.add_view(BaseAdminView(KindToTag, db.session))
+admin.add_view(BaseAdminView(KindToFlavor, db.session))
 
 migrate = Migrate(app, db)
 logger.info("Ready loading admin views and api")
