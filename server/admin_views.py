@@ -88,12 +88,24 @@ class ShopAdminView(AuthModelMixin):
     column_formatters = {"qr": _list_thumbnail}
 
 
-class ProductAdminView(AuthModelMixin):
-    column_list = ["name", "product_categories", "created_at"]
+class KindAdminView(AuthModelMixin):
+    column_list = [
+        "name",
+        "kind_tags",
+        "flavor_tags",
+        "c",
+        "h",
+        "i",
+        "s",
+        "short_description_nl",
+        "short_description_en",
+        "created_at",
+    ]
     column_default_sort = ("created_at", True)
-    column_searchable_list = ("id", "name", "created_at")
+    column_filters = ("c", "h", "i", "s")
+    column_searchable_list = ("id", "name", "short_description_nl", "created_at")
     can_set_page_size = True
-    form_excluded_columns = ["product_to_tags", "product_prices"]
+    form_excluded_columns = ["kind_to_tags", "kind_to_flavors"]
 
 
 class BaseAdminView(AuthModelMixin):
