@@ -7,6 +7,7 @@ flask-restplus==0.12.1
 #Flask-Security-Too==3.2.0
 -e git://github.com/jwag956/flask-security.git@560a401545006cf43b7047a16e944cf78ea75070#egg=Flask-Security-Too
 money==1.3.0
+more-itertools==7.2.0
 psycopg2-binary==2.7.6.1
 qrcode[pil]==6.1
 structlog==19.1.0

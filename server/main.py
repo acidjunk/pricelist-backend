@@ -22,13 +22,14 @@ logger = structlog.get_logger(__name__)
 
 # Create app
 app = Flask(__name__, static_url_path="/static")
+app.url_map.strict_slashes = False
 # NOTE: the extra headers need to be available in the API gateway: that is handled by zappa_settings.json
 CORS(
     app,
     resources="/*",
     allow_headers="*",
     origins="*",
-    expose_headers="Authorization,Content-Type,Authentication-Token",
+    expose_headers="Authorization,Content-Type,Authentication-Token,Content-Range",
 )
 DATABASE_URI = os.getenv("DATABASE_URI", "postgres://pricelist:pricelist@localhost/pricelist")
 
