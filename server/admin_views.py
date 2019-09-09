@@ -2,7 +2,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user
 from flask_security import utils
 from markupsafe import Markup
-from wtforms import PasswordField
+from wtforms import PasswordField, TextAreaField
 
 
 class AuthModelMixin(ModelView):
@@ -106,6 +106,7 @@ class KindAdminView(AuthModelMixin):
     column_searchable_list = ("id", "name", "short_description_nl", "created_at")
     can_set_page_size = True
     form_excluded_columns = ["kind_to_tags", "kind_to_flavors"]
+    form_overrides = dict(short_description_nl=TextAreaField, short_description_en=TextAreaField)
 
 
 class BaseAdminView(AuthModelMixin):
