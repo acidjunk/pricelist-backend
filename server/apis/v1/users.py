@@ -1,14 +1,7 @@
-import copy
-import hashlib
-import uuid
-from datetime import datetime
-
 import structlog
-from apis.helpers import _user_query_with_filters
-from database import User, db
-from flask_login import current_user
-from flask_restplus import Namespace, Resource, abort, fields, marshal_with
-from flask_security import auth_token_required, roles_accepted
+from apis.helpers import get_range_from_args, get_sort_from_args, query_with_filters
+from database import User
+from flask_restplus import Namespace, Resource, fields, marshal_with
 
 logger = structlog.get_logger(__name__)
 
@@ -29,9 +22,9 @@ user_fields = {
 user_message_fields = {"available": fields.Boolean, "reason": fields.String}
 
 parser = api.parser()
-parser.add_argument("range", location="args", help="Pagination")
-parser.add_argument("filter", location="args", help="Filter list options")
-parser.add_argument("sort", location="args", help="Sort list options")
+parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
+parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
+parser.add_argument("filter", location="args", help="Filter default=[]")
 
 
 @api.route("/")
@@ -41,28 +34,13 @@ class UserResourceList(Resource):
     # @auth_token_required
     # @roles_accepted('admin', 'operator')
     @marshal_with(user_fields)
+    @api.doc(parser=parser)
     def get(self):
         args = parser.parse_args()
-        range = []
-        if args["range"]:
-            try:
-                input = args["range"][1:-1].split(",")
-                for i in input:
-                    range.append(int(i))
-            except:
-                range = [0, 19]
-            logger.info("Query parameters", range=range)
+        range = get_range_from_args(args)
+        sort = get_sort_from_args(args, "username")
 
-        sort = []
-        if args["sort"]:
-            try:
-                input = args["sort"].split(",")
-                sort.append(input[0][2:-1])
-                sort.append(input[1][1:-2])
-            except:
-                sort = []
-            logger.info("Query parameters", sort=sort)
-        query_result, content_range = _user_query_with_filters(User.query, range, sort, "")
+        query_result, content_range = query_with_filters(User, User.query, range, sort, "")
         return query_result, 200, {"Content-Range": content_range}
 
 

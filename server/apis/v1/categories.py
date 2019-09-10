@@ -1,33 +1,55 @@
+import uuid
+
 import structlog
-from database import Category, Shop
-from flask_restplus import Namespace, Resource, fields, marshal_with
+from apis.helpers import get_range_from_args, get_sort_from_args, query_with_filters
+from database import Category, db
+from flask_restplus import Namespace, Resource, abort, fields, marshal_with
 
 logger = structlog.get_logger(__name__)
 
-api = Namespace("categories", description="Shop category related operations")
+api = Namespace("categories", description="Category related operations")
 
-category_marshaller = api.model(
+category_serializer = api.model(
+    "Category", {"id": fields.String(), "name": fields.String(required=True, description="Unique category name")}
+)
+category_serializer = api.model(
     "Category",
     {
         "id": fields.String(required=True),
         "name": fields.String(required=True, description="Category name"),
-        "description": fields.String(description="Description as shown in the category list and overviews"),
-        "shop": fields.String(required=True, description="Shop name"),
+        "shop_id": fields.String(required=True, description="Shop Id"),
     },
 )
-shop_marshaller = api.model("Shop", {"id": fields.String, "name": fields.String})
 
-category_list_fields = {
-    "shop": fields.Nested(shop_marshaller),
-    "categories": fields.List(fields.Nested(category_marshaller)),
-}
+parser = api.parser()
+parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
+parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
+parser.add_argument("filter", location="args", help="Filter default=[]")
 
 
-@api.route("/shop/<shop_id>")
-@api.doc("Show all categories belonging to provided shop_id.")
+@api.route("/")
+@api.doc("Show all categories.")
 class CategoryResourceList(Resource):
-    @marshal_with(category_list_fields)
-    def get(self, shop_id):
-        # Todo: return categories from selected shop
-        shop = Shop.query.filter_by(id=shop_id).first()
-        return {"shop": shop, "categories": Category.query.filter_by(shop_id=shop_id).all()}
+    @marshal_with(category_serializer)
+    @api.doc(parser=parser)
+    def get(self):
+        """List Categories"""
+        args = parser.parse_args()
+        range = get_range_from_args(args)
+        sort = get_sort_from_args(args)
+
+        query_result, content_range = query_with_filters(Category, Category.query, range, sort, "")
+        return query_result, 200, {"Content-Range": content_range}
+
+    @api.expect(category_serializer)
+    @api.marshal_with(category_serializer, code=201)
+    def post(self):
+        """New Categories"""
+        category = Category(id=str(uuid.uuid4()), **api.payload)
+        try:
+            db.session.add(category)
+            db.session.commit()
+        except Exception as error:
+            db.session.rollback()
+            abort(400, "DB error: {}".format(str(error)))
+        return 201

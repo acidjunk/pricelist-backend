@@ -3,9 +3,9 @@ import os
 
 import flask
 import structlog
-from admin_views import BaseAdminView, KindAdminView, RolesAdminView, ShopAdminView, UserAdminView
+from admin_views import BaseAdminView, CategoryAdminView, KindAdminView, RolesAdminView, ShopAdminView, UserAdminView
 from apis import api
-from database import Flavor, Kind, KindToFlavor, KindToTag, Price, Role, Shop, Tag, User, db, user_datastore
+from database import Category, Flavor, Kind, KindToFlavor, KindToTag, Price, Role, Shop, Tag, User, db, user_datastore
 from flask import Flask, url_for
 from flask_admin import Admin
 from flask_admin import helpers as admin_helpers
@@ -31,7 +31,7 @@ CORS(
     origins="*",
     expose_headers="Authorization,Content-Type,Authentication-Token,Content-Range",
 )
-DATABASE_URI = os.getenv("DATABASE_URI", "postgres://pricelist:pricelist@localhost/pricelist")
+DATABASE_URI = os.getenv("DATABASE_URI", "postgres://postgres:@localhost/pricelist-test")  # setup Travis
 
 app.config["DEBUG"] = False if not os.getenv("DEBUG") else True
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") if os.getenv("SECRET_KEY") else "super-secret"
@@ -66,6 +66,8 @@ app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME") if os.getenv("MAIL_USER
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD") if os.getenv("MAIL_PASSWORD") else "somepassword"
 
 app.config["FRONTEND_URI"] = os.getenv("FRONTEND_URI") if os.getenv("FRONTEND_URI") else "www.example.com"
+# Todo: check if we can fix this without completely disabling it: it's only needed when login request is not via .json
+app.config["WTF_CSRF_ENABLED"] = False
 
 # Setup Flask-Security with extended user registration
 security = Security(
@@ -141,6 +143,7 @@ api.init_app(app)
 db.init_app(app)
 mail.init_app(app)
 admin.add_view(ShopAdminView(Shop, db.session))
+admin.add_view(CategoryAdminView(Category, db.session))
 admin.add_view(KindAdminView(Kind, db.session))
 admin.add_view(BaseAdminView(Price, db.session))
 admin.add_view(UserAdminView(User, db.session))

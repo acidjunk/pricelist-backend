@@ -57,9 +57,9 @@ class RolesAdminView(AuthModelMixin):
 
 
 class CategoryAdminView(AuthModelMixin):
-    column_list = ["shop", "name", "description", "qr"]
+    column_list = ["shop", "name", "qr"]
     column_default_sort = ("name", False)
-    column_searchable_list = ("id", "name", "description")
+    column_searchable_list = ("id", "name")
     can_set_page_size = True
 
     def _list_thumbnail(view, context, model, name):
@@ -106,7 +106,7 @@ class KindAdminView(AuthModelMixin):
     column_searchable_list = ("id", "name", "short_description_nl", "created_at")
     can_set_page_size = True
     form_excluded_columns = ["kind_to_tags", "kind_to_flavors"]
-    form_overrides = dict(short_description_nl=TextAreaField, short_description_en=TextAreaField)
+    form_overrides = dict(description_nl=TextAreaField, description_en=TextAreaField)
 
 
 class BaseAdminView(AuthModelMixin):

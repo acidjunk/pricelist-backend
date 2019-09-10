@@ -86,6 +86,18 @@ class Shop(db.Model):
         return self.name
 
 
+class Category(db.Model):
+    __tablename__ = "categories"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String(255), unique=True, index=True)
+    description = Column(String(255), unique=True, index=True)
+    shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
+    shop = db.relationship("Shop", lazy=True)
+
+    def __repr__(self):
+        return f"{self.shop.name}: {self.name}"
+
+
 class Kind(db.Model):
     __tablename__ = "kinds"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -117,6 +129,7 @@ class Price(db.Model):
     two_five = Column("two_five", Float(), nullable=True)
     five = Column("five", Float(), nullable=True)
     joint = Column("joint", Float(), nullable=True)
+    piece = Column("piece", Float(), nullable=True)
 
 
 # Tag many to many relations
