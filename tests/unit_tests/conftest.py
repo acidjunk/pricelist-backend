@@ -7,20 +7,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import make_url
 
-from server.database import (
-    Category,
-    Flavor,
-    Kind,
-    KindToFlavor,
-    KindToTag,
-    Price,
-    Role,
-    Shop,
-    Tag,
-    User,
-    db,
-    user_datastore,
-)
+from server.database import Category, Flavor, Kind, Price, Role, Shop, Tag, User, db, user_datastore
 
 MEMBER_EMAIL = "member@example.com"
 MEMBER_PASSWORD = "Membertje"
@@ -221,7 +208,7 @@ def flavor_2():
 
 
 @pytest.fixture
-def kind_1(tag_1, tag_2, flavor_1, flavor_2):
+def kind_1():
     fixture_id = str(uuid.uuid4())
     fixture = Kind(
         id=fixture_id,
@@ -240,16 +227,16 @@ def kind_1(tag_1, tag_2, flavor_1, flavor_2):
         "profile and produces intense psychotropic effects that new consumers should be wary of.",
     )
     db.session.add(fixture)
-    record = KindToTag(id=str(uuid.uuid4()), kind_id=fixture_id, tag_id=tag_1.id, amount=90)
-    db.session.add(record)
-    record = KindToTag(id=str(uuid.uuid4()), kind_id=fixture_id, tag_id=tag_2.id, amount=60)
-    db.session.add(record)
-    record = KindToFlavor(id=str(uuid.uuid4()), kind_id=fixture_id, flavor_id=flavor_1.id)
-    db.session.add(record)
-    record = KindToFlavor(id=str(uuid.uuid4()), kind_id=fixture_id, flavor_id=flavor_2.id)
-    db.session.add(record)
+    # record = KindToTag(id=str(uuid.uuid4()), kind_id=fixture_id, tag=tag_1, amount=90)
+    # db.session.add(record)
+    # record = KindToTag(id=str(uuid.uuid4()), kind_id=fixture_id, tag_id=tag_2, amount=60)
+    # db.session.add(record)
+    # record = KindToFlavor(id=str(uuid.uuid4()), kind_id=fixture_id, flavor_id=flavor_1.id)
+    # db.session.add(record)
+    # record = KindToFlavor(id=str(uuid.uuid4()), kind_id=fixture_id, flavor_id=flavor_2.id)
+    # db.session.add(record)
     db.session.commit()
-    return tag_1
+    return fixture
 
 
 # @pytest.fixture

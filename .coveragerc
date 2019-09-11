@@ -1,0 +1,4 @@
+[run]
+omit =
+    # omit some specific files that are outside the scope of tests
+    improviser/admin_views.py

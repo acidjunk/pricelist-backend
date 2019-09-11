@@ -142,9 +142,6 @@ class KindToTag(db.Model):
     kind = db.relationship("Kind", lazy=True)
     tag = db.relationship("Tag", lazy=True)
 
-    def __repr__(self):
-        return f"{self.tag.name}: {self.amount}%"
-
 
 # Flavor many to many relation
 class KindToFlavor(db.Model):

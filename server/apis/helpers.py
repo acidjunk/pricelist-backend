@@ -1,6 +1,8 @@
 from typing import List
 
 import structlog
+from database import db
+from flask_restplus import abort
 from more_itertools import chunked
 from sqlalchemy import String, cast
 from sqlalchemy.sql import expression
@@ -41,6 +43,15 @@ def get_sort_from_args(args, default_sort="name"):
     return sort
 
 
+def save(item):
+    try:
+        db.session.add(item)
+        db.session.commit()
+    except Exception as error:
+        db.session.rollback()
+        abort(400, "DB error: {}".format(str(error)))
+
+
 def query_with_filters(model, query, range: List[int] = None, sort: List[str] = None, filters: List[str] = None):
     if filters is not None:
         for filter in chunked(filters, 2):
@@ -74,11 +85,13 @@ def query_with_filters(model, query, range: List[int] = None, sort: List[str] = 
     # Range is inclusive so we need to add one
     if len(range) >= 2:
         # Range is inclusive so we need to add one
+        total = query.count()
         range_length = max(range_end - range_start + 1, 0)
         query = query.offset(range_start)
         query = query.limit(range_length)
-    total = query.count()
+    else:
+        total = query.count()
 
-    content_range = f"kinds {range_start}-{range_end}/{total}"
+    content_range = f"items {range_start}-{range_end}/{total}"
 
     return query.all(), content_range
