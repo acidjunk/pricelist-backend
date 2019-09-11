@@ -21,6 +21,6 @@ before_script:
  - psql -c 'create database "pricelist-test";' -U postgres
 
 # Tell Travis how to run the test script itself
-script: DB_USER=postgres DB_PASSWORD="" PYTHONPATH=pricelist py.test --cov=server tests/unit_tests/
+script: DB_USER=postgres DB_PASSWORD="" PYTHONPATH=server py.test --cov=server tests/unit_tests/
 
 after_success: coveralls
