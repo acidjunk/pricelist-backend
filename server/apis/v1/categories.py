@@ -1,7 +1,7 @@
 import uuid
 
 import structlog
-from apis.helpers import get_range_from_args, get_sort_from_args, query_with_filters, save
+from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
 from database import Category
 from flask_restplus import Namespace, Resource, fields, marshal_with
 
@@ -48,3 +48,21 @@ class CategoryResourceList(Resource):
         category = Category(id=str(uuid.uuid4()), **api.payload)
         save(category)
         return category, 201
+
+
+@api.route("/<id>")
+@api.doc("Category detail operations.")
+class CategoryResource(Resource):
+    @marshal_with(category_serializer)
+    def get(self, id):
+        """List Category"""
+        item = load(Category, id)
+        return item, 200
+
+    @api.expect(category_serializer)
+    @api.marshal_with(category_serializer)
+    def put(self, id):
+        """Edit Category"""
+        item = load(Category, id)
+        item = update(item, api.payload)
+        return item, 201

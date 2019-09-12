@@ -1,7 +1,7 @@
 import uuid
 
 import structlog
-from apis.helpers import get_range_from_args, get_sort_from_args, query_with_filters, save
+from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
 from database import Flavor, Kind, KindToFlavor, KindToTag, Tag
 from flask_restplus import Namespace, Resource, abort, fields, marshal_with
 
@@ -99,6 +99,24 @@ class KindResourceList(Resource):
         return kind, 201
 
 
+@api.route("/<id>")
+@api.doc("Kind detail operations.")
+class KindResource(Resource):
+    @marshal_with(kind_serializer)
+    def get(self, id):
+        """List Kind"""
+        item = load(Kind, id)
+        return item, 200
+
+    @api.expect(kind_serializer)
+    @api.marshal_with(kind_serializer)
+    def put(self, id):
+        """Edit Kind"""
+        item = load(Kind, id)
+        item = update(item, api.payload)
+        return item, 201
+
+
 @api.route("/<id>/tags")
 @api.doc("Show all tags for a kind")
 class KindDetailTagResourceList(Resource):
@@ -138,6 +156,24 @@ class NewKindToTagResource(Resource):
         return kind_to_tag, 201
 
 
+@api.route("/tag/<id>")
+@api.doc("KindToTag detail operations.")
+class KindToTagResource(Resource):
+    @marshal_with(kind_to_tag_serializer)
+    def get(self, id):
+        """List KindToTag"""
+        item = load(KindToTag, id)
+        return item, 200
+
+    @api.expect(kind_to_tag_serializer)
+    @api.marshal_with(kind_to_tag_serializer)
+    def put(self, id):
+        """Edit KindToTag"""
+        item = load(KindToTag, id)
+        item = update(item, api.payload)
+        return item, 201
+
+
 @api.route("/<id>/flavors")
 @api.doc("Show all flavors for a kind")
 class KindDetailFlavorResourceList(Resource):
@@ -175,3 +211,21 @@ class NewKindToFlavorResource(Resource):
         kind_to_flavor = KindToFlavor(id=str(uuid.uuid4()), kind=kind, flavor=flavor)
         save(kind_to_flavor)
         return kind_to_flavor, 201
+
+
+@api.route("/tag/<id>")
+@api.doc("KindToFlavor detail operations.")
+class KindToFlavorResource(Resource):
+    @marshal_with(kind_to_flavor_serializer)
+    def get(self, id):
+        """List KindToFlavor"""
+        item = load(KindToFlavor, id)
+        return item, 200
+
+    @api.expect(kind_to_flavor_serializer)
+    @api.marshal_with(kind_to_flavor_serializer)
+    def put(self, id):
+        """Edit KindToFlavor"""
+        item = load(KindToFlavor, id)
+        item = update(item, api.payload)
+        return item, 201

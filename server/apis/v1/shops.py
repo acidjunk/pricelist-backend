@@ -1,7 +1,7 @@
 import uuid
 
 import structlog
-from apis.helpers import get_range_from_args, get_sort_from_args, query_with_filters, save
+from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
 from database import Shop
 from flask_restplus import Namespace, Resource, fields, marshal_with
 
@@ -44,3 +44,21 @@ class ShopResourceList(Resource):
         shop = Shop(id=str(uuid.uuid4()), **api.payload)
         save(shop)
         return shop, 201
+
+
+@api.route("/<id>")
+@api.doc("Shop detail operations.")
+class ShopResource(Resource):
+    @marshal_with(shop_serializer)
+    def get(self, id):
+        """List Shop"""
+        item = load(Shop, id)
+        return item, 200
+
+    @api.expect(shop_serializer)
+    @api.marshal_with(shop_serializer)
+    def put(self, id):
+        """Edit Shop"""
+        item = load(Shop, id)
+        item = update(item, api.payload)
+        return item, 201

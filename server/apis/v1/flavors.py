@@ -1,7 +1,7 @@
 import uuid
 
 import structlog
-from apis.helpers import get_range_from_args, get_sort_from_args, query_with_filters, save
+from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
 from database import Flavor
 from flask_restplus import Namespace, Resource, fields, marshal_with
 
@@ -47,3 +47,21 @@ class FlavorResourceList(Resource):
         flavor = Flavor(id=str(uuid.uuid4()), **api.payload)
         save(flavor)
         return flavor, 201
+
+
+@api.route("/<id>")
+@api.doc("Flavor detail operations.")
+class FlavorResource(Resource):
+    @marshal_with(flavor_serializer)
+    def get(self, id):
+        """List Flavor"""
+        item = load(Flavor, id)
+        return item, 200
+
+    @api.expect(flavor_serializer)
+    @api.marshal_with(flavor_serializer)
+    def put(self, id):
+        """Edit Flavor"""
+        item = load(Flavor, id)
+        item = update(item, api.payload)
+        return item, 201

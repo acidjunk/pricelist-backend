@@ -52,6 +52,24 @@ def save(item):
         abort(400, "DB error: {}".format(str(error)))
 
 
+def load(model, id):
+    item = model.query.filter_by(id=id).first()
+    if not item:
+        abort(404, f"Record id={id} not found")
+    return item
+
+
+def update(item, payload):
+    try:
+        del payload["id"]
+        for column, value in payload.items():
+            setattr(item, column, value)
+        save(item)
+    except Exception as e:
+        abort(500, f"Error: {e}")
+    return item
+
+
 def query_with_filters(model, query, range: List[int] = None, sort: List[str] = None, filters: List[str] = None):
     if filters is not None:
         for filter in chunked(filters, 2):
