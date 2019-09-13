@@ -4,6 +4,7 @@ import structlog
 from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
 from database import Flavor
 from flask_restplus import Namespace, Resource, fields, marshal_with
+from flask_security import roles_accepted
 
 logger = structlog.get_logger(__name__)
 
@@ -30,6 +31,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 class FlavorResourceList(Resource):
     @marshal_with(flavor_serializer)
     @api.doc(parser=parser)
+    @roles_accepted("admin")
     def get(self):
         """List Flavors"""
         args = parser.parse_args()
@@ -42,6 +44,7 @@ class FlavorResourceList(Resource):
 
     @api.expect(flavor_serializer)
     @api.marshal_with(flavor_serializer)
+    @roles_accepted("admin")
     def post(self):
         """New Flavors"""
         flavor = Flavor(id=str(uuid.uuid4()), **api.payload)
@@ -53,6 +56,7 @@ class FlavorResourceList(Resource):
 @api.doc("Flavor detail operations.")
 class FlavorResource(Resource):
     @marshal_with(flavor_serializer)
+    @roles_accepted("admin")
     def get(self, id):
         """List Flavor"""
         item = load(Flavor, id)
@@ -60,6 +64,7 @@ class FlavorResource(Resource):
 
     @api.expect(flavor_serializer)
     @api.marshal_with(flavor_serializer)
+    @roles_accepted("admin")
     def put(self, id):
         """Edit Flavor"""
         item = load(Flavor, id)
