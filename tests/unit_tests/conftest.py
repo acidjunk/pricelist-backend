@@ -9,6 +9,8 @@ from sqlalchemy.engine.url import make_url
 
 from server.database import Category, Flavor, Kind, Price, Role, Shop, Tag, User, db, user_datastore
 
+ADMIN_EMAIL = "admin@example.com"
+ADMIN_PASSWORD = "Adminnetje"
 MEMBER_EMAIL = "member@example.com"
 MEMBER_PASSWORD = "Membertje"
 SHOP_EMAIL = "shop@example.com"
@@ -97,6 +99,23 @@ def member_unconfirmed(user_roles):
 def member(member_unconfirmed):
     user = User.query.filter(User.email == MEMBER_EMAIL).first()
     user.confirmed_at = datetime.datetime.utcnow()
+    db.session.commit()
+    return user
+
+
+@pytest.fixture
+def admin(user_roles):
+    user = user_datastore.create_user(username="admin", password=ADMIN_PASSWORD, email=ADMIN_EMAIL)
+    user_datastore.add_role_to_user(user, "admin")
+    user.confirmed_at = datetime.datetime.utcnow()
+    db.session.commit()
+    return user
+
+
+@pytest.fixture
+def admin_logged_in(admin):
+    user = User.query.filter(User.email == ADMIN_EMAIL).first()
+    # Todo: actually login/handle cookie
     db.session.commit()
     return user
 

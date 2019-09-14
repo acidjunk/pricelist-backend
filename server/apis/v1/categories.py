@@ -4,6 +4,7 @@ import structlog
 from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
 from database import Category
 from flask_restplus import Namespace, Resource, fields, marshal_with
+from flask_security import auth_token_required, roles_accepted
 
 logger = structlog.get_logger(__name__)
 
@@ -22,6 +23,7 @@ category_serializer = api.model(
 )
 
 parser = api.parser()
+parser.add_argument("Authentication-Token", type=str, location="headers", help="Authentication-Token")
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
 parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
 parser.add_argument("filter", location="args", help="Filter default=[]")
@@ -30,6 +32,8 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("Show all categories.")
 class CategoryResourceList(Resource):
+    @auth_token_required
+    @roles_accepted("admin")
     @marshal_with(category_serializer)
     @api.doc(parser=parser)
     def get(self):
@@ -41,6 +45,8 @@ class CategoryResourceList(Resource):
         query_result, content_range = query_with_filters(Category, Category.query, range, sort, "")
         return query_result, 200, {"Content-Range": content_range}
 
+    @auth_token_required
+    @roles_accepted("admin")
     @api.expect(category_serializer)
     @api.marshal_with(category_serializer)
     def post(self):
@@ -53,12 +59,16 @@ class CategoryResourceList(Resource):
 @api.route("/<id>")
 @api.doc("Category detail operations.")
 class CategoryResource(Resource):
+    @auth_token_required
+    @roles_accepted("admin")
     @marshal_with(category_serializer)
     def get(self, id):
         """List Category"""
         item = load(Category, id)
         return item, 200
 
+    @auth_token_required
+    @roles_accepted("admin")
     @api.expect(category_serializer)
     @api.marshal_with(category_serializer)
     def put(self, id):

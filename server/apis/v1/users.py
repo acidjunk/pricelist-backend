@@ -2,6 +2,7 @@ import structlog
 from apis.helpers import get_range_from_args, get_sort_from_args, query_with_filters
 from database import User
 from flask_restplus import Namespace, Resource, fields, marshal_with
+from flask_security import auth_token_required, roles_accepted
 
 logger = structlog.get_logger(__name__)
 
@@ -22,6 +23,7 @@ user_fields = {
 user_message_fields = {"available": fields.Boolean, "reason": fields.String}
 
 parser = api.parser()
+parser.add_argument("Authentication-Token", type=str, location="headers", help="Authentication-Token")
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
 parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
 parser.add_argument("filter", location="args", help="Filter default=[]")
@@ -30,9 +32,8 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("Show all users to staff users.")
 class UserResourceList(Resource):
-
-    # @auth_token_required
-    # @roles_accepted('admin', 'operator')
+    @auth_token_required
+    @roles_accepted("admin")
     @marshal_with(user_fields)
     @api.doc(parser=parser)
     def get(self):

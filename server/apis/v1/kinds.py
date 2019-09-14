@@ -4,6 +4,7 @@ import structlog
 from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
 from database import Flavor, Kind, KindToFlavor, KindToTag, Tag
 from flask_restplus import Namespace, Resource, abort, fields, marshal_with
+from flask_security import auth_token_required, roles_accepted
 
 logger = structlog.get_logger(__name__)
 
@@ -56,6 +57,7 @@ kind_to_flavor_serializer = api.model(
 
 
 parser = api.parser()
+parser.add_argument("Authentication-Token", type=str, location="headers", help="Authentication-Token")
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
 parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
 parser.add_argument("filter", location="args", help="Filter default=[]")
@@ -90,6 +92,8 @@ class KindResourceList(Resource):
             ]
         return query_result, 200, {"Content-Range": content_range}
 
+    @auth_token_required
+    @roles_accepted("admin")
     @api.expect(kind_serializer)
     @api.marshal_with(kind_serializer)
     def post(self):
@@ -108,6 +112,8 @@ class KindResource(Resource):
         item = load(Kind, id)
         return item, 200
 
+    @auth_token_required
+    @roles_accepted("admin")
     @api.expect(kind_serializer)
     @api.marshal_with(kind_serializer)
     def put(self, id):
@@ -137,6 +143,8 @@ class KindDetailTagResourceList(Resource):
 @api.route("/tags")
 @api.doc("Create tags")
 class NewKindToTagResource(Resource):
+    @auth_token_required
+    @roles_accepted("admin")
     @api.expect(kind_to_tag_serializer)
     @api.marshal_with(kind_to_tag_serializer)
     def post(self):
@@ -159,12 +167,16 @@ class NewKindToTagResource(Resource):
 @api.route("/tag/<id>")
 @api.doc("KindToTag detail operations.")
 class KindToTagResource(Resource):
+    @auth_token_required
+    @roles_accepted("admin")
     @marshal_with(kind_to_tag_serializer)
     def get(self, id):
         """List KindToTag"""
         item = load(KindToTag, id)
         return item, 200
 
+    @auth_token_required
+    @roles_accepted("admin")
     @api.expect(kind_to_tag_serializer)
     @api.marshal_with(kind_to_tag_serializer)
     def put(self, id):
@@ -194,6 +206,8 @@ class KindDetailFlavorResourceList(Resource):
 @api.route("/flavors")
 @api.doc("Create flavors")
 class NewKindToFlavorResource(Resource):
+    @auth_token_required
+    @roles_accepted("admin")
     @api.expect(kind_to_flavor_serializer)
     @api.marshal_with(kind_to_flavor_serializer)
     def post(self):
@@ -216,12 +230,16 @@ class NewKindToFlavorResource(Resource):
 @api.route("/tag/<id>")
 @api.doc("KindToFlavor detail operations.")
 class KindToFlavorResource(Resource):
+    @auth_token_required
+    @roles_accepted("admin")
     @marshal_with(kind_to_flavor_serializer)
     def get(self, id):
         """List KindToFlavor"""
         item = load(KindToFlavor, id)
         return item, 200
 
+    @auth_token_required
+    @roles_accepted("admin")
     @api.expect(kind_to_flavor_serializer)
     @api.marshal_with(kind_to_flavor_serializer)
     def put(self, id):
