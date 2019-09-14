@@ -8,3 +8,7 @@ The REST API server for a pricelist service
 
 An online demo can be found on: https://api.prijslijst.info
 If you want to see what you can build with it, grab a free account on: https://www.prijslijst.info/register
+
+# Handy stuff
+
+```PYTHONPATH=. PASSWORD=yourpass EMAIL=admin@example.com python client_examples/login.py
