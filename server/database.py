@@ -41,6 +41,7 @@ class User(db.Model, UserMixin):
     username = Column(String(255), unique=True)
     password = Column(String(255))
     active = Column(Boolean())
+    fs_uniquifier = Column(String(255))
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     confirmed_at = Column(DateTime())
     roles = relationship("Role", secondary="roles_users", backref=backref("users", lazy="dynamic"))
@@ -154,6 +155,23 @@ class KindToFlavor(db.Model):
 
     def __repr__(self):
         return f"{self.flavor.name}: {self.kind.name}"
+
+
+class PriceToShop(db.Model):
+    __tablename__ = "prices_to_shops"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
+    shop = db.relationship("Shop", lazy=True)
+    category_id = Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id"), nullable=True, index=True)
+    category = db.relationship("Category", lazy=True)
+    price_id = Column("price_id", UUID(as_uuid=True), ForeignKey("prices.id"), index=True)
+    price = db.relationship("Price", lazy=True)
+    use_half = Column("half", Boolean(), default=True)
+    use_one = Column("one", Boolean(), default=True)
+    use_two_five = Column("two_five", Boolean(), default=True)
+    use_five = Column("five", Boolean(), default=True)
+    use_joint = Column("joint", Boolean(), default=True)
+    use_piece = Column("piece", Boolean(), default=True)
 
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)

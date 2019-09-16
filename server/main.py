@@ -1,6 +1,7 @@
 import io
 import os
 
+import click
 import flask
 import structlog
 from admin_views import BaseAdminView, CategoryAdminView, KindAdminView, RolesAdminView, ShopAdminView, UserAdminView
@@ -75,6 +76,12 @@ security = Security(
 )
 login_manager = LoginManager(app)
 mail = Mail()
+
+
+@app.cli.command("import-prices")
+@click.argument("file")
+def import_prices(file):
+    pass
 
 
 @app.teardown_appcontext
