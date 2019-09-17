@@ -71,7 +71,7 @@ class Flavor(db.Model):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(60), unique=True, index=True)
     icon = Column(String(60), unique=True, index=True)
-    color = Column(String(6), default="000000")
+    color = Column(String(20), default="#000000")
 
     def __repr__(self):
         return self.name
@@ -168,6 +168,8 @@ class ShopToPrice(db.Model):
     shop = db.relationship("Shop", lazy=True)
     category_id = Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id"), nullable=True, index=True)
     category = db.relationship("Category", lazy=True)
+    kind_id = Column("kind_id", UUID(as_uuid=True), ForeignKey("kinds.id"), index=True)
+    kind = db.relationship("Kind", lazy=True)
     price_id = Column("price_id", UUID(as_uuid=True), ForeignKey("prices.id"), index=True)
     price = db.relationship("Price", lazy=True)
     use_half = Column("use_half", Boolean(), default=True)
