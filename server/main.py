@@ -6,7 +6,21 @@ import flask
 import structlog
 from admin_views import BaseAdminView, CategoryAdminView, KindAdminView, RolesAdminView, ShopAdminView, UserAdminView
 from apis import api
-from database import Category, Flavor, Kind, KindToFlavor, KindToTag, Price, Role, Shop, Tag, User, db, user_datastore
+from database import (
+    Category,
+    Flavor,
+    Kind,
+    KindToFlavor,
+    KindToTag,
+    Price,
+    Role,
+    Shop,
+    ShopToPrice,
+    Tag,
+    User,
+    db,
+    user_datastore,
+)
 from flask import Flask, url_for
 from flask_admin import Admin
 from flask_admin import helpers as admin_helpers
@@ -16,7 +30,7 @@ from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_security import Security, user_registered
 from security import ExtendedJSONRegisterForm, ExtendedRegisterForm
-from utils import generate_qr_image
+from utils import generate_qr_image, import_prices
 from version import VERSION
 
 logger = structlog.get_logger(__name__)
@@ -27,6 +41,7 @@ app.url_map.strict_slashes = False
 # NOTE: the extra headers need to be available in the API gateway: that is handled by zappa_settings.json
 CORS(
     app,
+    supports_credentials=True,
     resources="/*",
     allow_headers="*",
     origins="*",
@@ -80,8 +95,8 @@ mail = Mail()
 
 @app.cli.command("import-prices")
 @click.argument("file")
-def import_prices(file):
-    pass
+def import_prices_click(file):
+    import_prices(file)
 
 
 @app.teardown_appcontext
@@ -159,6 +174,7 @@ admin.add_view(BaseAdminView(Tag, db.session))
 admin.add_view(BaseAdminView(Flavor, db.session))
 admin.add_view(BaseAdminView(KindToTag, db.session))
 admin.add_view(BaseAdminView(KindToFlavor, db.session))
+admin.add_view(BaseAdminView(ShopToPrice, db.session))
 
 migrate = Migrate(app, db)
 logger.info("Ready loading admin views and api")

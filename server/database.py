@@ -124,13 +124,16 @@ class Kind(db.Model):
 class Price(db.Model):
     __tablename__ = "prices"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    internal_product_id = Column(String(255), nullable=True)
+    internal_product_id = Column("internal_product_id", Integer(), unique=True)
     half = Column("half", Float(), nullable=True)
     one = Column("one", Float(), nullable=True)
     two_five = Column("two_five", Float(), nullable=True)
     five = Column("five", Float(), nullable=True)
     joint = Column("joint", Float(), nullable=True)
     piece = Column("piece", Float(), nullable=True)
+
+    def __repr__(self):
+        return f"Price for product_id: {self.internal_product_id}"
 
 
 # Tag many to many relations
@@ -157,21 +160,22 @@ class KindToFlavor(db.Model):
         return f"{self.flavor.name}: {self.kind.name}"
 
 
-class PriceToShop(db.Model):
-    __tablename__ = "prices_to_shops"
+class ShopToPrice(db.Model):
+    __tablename__ = "shops_to_price"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    active = Column("active", Boolean(), default=True)
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     shop = db.relationship("Shop", lazy=True)
     category_id = Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id"), nullable=True, index=True)
     category = db.relationship("Category", lazy=True)
     price_id = Column("price_id", UUID(as_uuid=True), ForeignKey("prices.id"), index=True)
     price = db.relationship("Price", lazy=True)
-    use_half = Column("half", Boolean(), default=True)
-    use_one = Column("one", Boolean(), default=True)
+    use_half = Column("use_half", Boolean(), default=True)
+    use_one = Column("use_one", Boolean(), default=True)
     use_two_five = Column("two_five", Boolean(), default=True)
-    use_five = Column("five", Boolean(), default=True)
-    use_joint = Column("joint", Boolean(), default=True)
-    use_piece = Column("piece", Boolean(), default=True)
+    use_five = Column("use_five", Boolean(), default=True)
+    use_joint = Column("use_joint", Boolean(), default=True)
+    use_piece = Column("use_piece", Boolean(), default=True)
 
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)

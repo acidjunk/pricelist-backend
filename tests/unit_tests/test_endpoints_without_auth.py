@@ -33,6 +33,11 @@ def test_flavors_endpoint_without_auth(client, flavor_1):
     assert response.status_code == 401
 
 
+def test_price_endpoint_without_auth(client):
+    response = client.get("/v1/prices", follow_redirects=True)
+    assert response.status_code == 401
+
+
 def test_users_endpoint_without_auth(client, member):
     response = client.get("/v1/users", follow_redirects=True)
     assert response.status_code == 401

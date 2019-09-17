@@ -110,4 +110,4 @@ class KindAdminView(AuthModelMixin):
 
 
 class BaseAdminView(AuthModelMixin):
-    pass
+    can_set_page_size = True
