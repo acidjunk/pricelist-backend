@@ -54,7 +54,6 @@ def import_prices(file):
 
 
 def convert_price_string_to_float(price: str) -> Union[float, None]:
-    print("***")
     try:
         price = price.replace(",", ".")
         return float(price)
