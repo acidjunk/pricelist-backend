@@ -1,12 +1,21 @@
 import uuid
 
 from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
-from apis.v1.kinds import kind_to_tag_serializer
 from database import Kind, KindToTag, Tag
-from flask_restplus import Namespace, Resource, abort, marshal_with
+from flask_restplus import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 
 api = Namespace("kinds-to-tags", description="Kind to tag related operations")
+
+kind_to_tag_serializer = api.model(
+    "KindToTag",
+    {
+        "id": fields.String(),
+        "amount": fields.Integer(required=True, description="Effect amount"),
+        "tag_id": fields.String(required=True, description="Tag Id"),
+        "kind_id": fields.String(required=True, description="Kind Id"),
+    },
+)
 
 parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
@@ -32,7 +41,7 @@ class KindsToTagsResource(Resource):
     @api.expect(kind_to_tag_serializer)
     @api.marshal_with(kind_to_tag_serializer)
     def post(self):
-        """New Shops"""
+        """New KindToTag"""
         tag = Tag.query.filter(Tag.id == api.payload["tag_id"]).first()
         kind = Kind.query.filter(Kind.id == api.payload["kind_id"]).first()
 

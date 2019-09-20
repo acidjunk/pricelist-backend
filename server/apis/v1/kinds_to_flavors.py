@@ -1,12 +1,20 @@
 import uuid
 
 from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
-from apis.v1.kinds import kind_to_flavor_serializer
 from database import Flavor, Kind, KindToFlavor
-from flask_restplus import Namespace, Resource, abort, marshal_with
+from flask_restplus import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 
 api = Namespace("kinds-to-flavors", description="Kind to flavor related operations")
+
+kind_to_flavor_serializer = api.model(
+    "KindToFlavor",
+    {
+        "id": fields.String(),
+        "flavor_id": fields.String(required=True, description="Flavor Id"),
+        "kind_id": fields.String(required=True, description="Kind Id"),
+    },
+)
 
 parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
@@ -23,7 +31,7 @@ class KindsToFlavorsResource(Resource):
         """List flavors for a product kind"""
         args = parser.parse_args()
         range = get_range_from_args(args)
-        sort = get_sort_from_args(args, "amount")
+        sort = get_sort_from_args(args, "id")
 
         query_result, content_range = query_with_filters(KindToFlavor, KindToFlavor.query, range, sort, "")
         return query_result, 200, {"Content-Range": content_range}
@@ -32,7 +40,7 @@ class KindsToFlavorsResource(Resource):
     @api.expect(kind_to_flavor_serializer)
     @api.marshal_with(kind_to_flavor_serializer)
     def post(self):
-        """New Shops"""
+        """New KindToFlavor"""
         flavor = Flavor.query.filter(Flavor.id == api.payload["flavor_id"]).first()
         kind = Kind.query.filter(Kind.id == api.payload["kind_id"]).first()
 
@@ -43,7 +51,7 @@ class KindsToFlavorsResource(Resource):
         if len(check_query) > 0:
             abort(409, "Relation already exists")
 
-        kind_to_flavor = KindToFlavor(id=str(uuid.uuid4()), kind=kind, flavor=flavor, amount=api.payload["amount"])
+        kind_to_flavor = KindToFlavor(id=str(uuid.uuid4()), kind=kind, flavor=flavor)
         save(kind_to_flavor)
         return kind_to_flavor, 201
 
