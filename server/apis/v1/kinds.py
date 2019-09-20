@@ -62,12 +62,7 @@ class KindResourceList(Resource):
                 for tag in kind.kind_to_tags
             ]
             kind.flavors = [
-                {
-                    "id": flavor.flavor.id,
-                    "name": flavor.flavor.name,
-                    "icon": flavor.flavor.icon,
-                    "color": flavor.flavor.color,
-                }
+                {"id": flavor.id, "name": flavor.flavor.name, "icon": flavor.flavor.icon, "color": flavor.flavor.color}
                 for flavor in kind.kind_to_flavors
             ]
         return query_result, 200, {"Content-Range": content_range}
@@ -93,12 +88,7 @@ class KindResource(Resource):
             {"id": tag.id, "name": f"{tag.tag.name}: {tag.amount}", "amount": tag.amount} for tag in item.kind_to_tags
         ]
         item.flavors = [
-            {
-                "id": flavor.flavor.id,
-                "name": flavor.flavor.name,
-                "icon": flavor.flavor.icon,
-                "color": flavor.flavor.color,
-            }
+            {"id": flavor.id, "name": flavor.flavor.name, "icon": flavor.flavor.icon, "color": flavor.flavor.color}
             for flavor in item.kind_to_flavors
         ]
         return item, 200

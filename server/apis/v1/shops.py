@@ -78,7 +78,7 @@ class ShopResource(Resource):
         price_relations = ShopToPrice.query.filter_by(shop_id=item.id).all()
         item.prices = [
             {
-                "id": pr.price.id,
+                "id": pr.id,
                 "active": pr.active,
                 "category_id": pr.category_id,
                 "kind_id": pr.kind_id,
