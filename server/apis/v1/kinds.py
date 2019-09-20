@@ -77,7 +77,7 @@ class KindResourceList(Resource):
         # Todo: return items from selected shop/category
         for kind in query_result:
             kind.tags = [
-                {"id": tag.tag.id, "name": f"{tag.tag.name}: {tag.amount}", "amount": tag.amount}
+                {"id": tag.id, "name": f"{tag.tag.name}: {tag.amount}", "amount": tag.amount}
                 for tag in kind.kind_to_tags
             ]
             kind.flavors = [
@@ -104,10 +104,22 @@ class KindResourceList(Resource):
 @api.route("/<id>")
 @api.doc("Kind detail operations.")
 class KindResource(Resource):
-    @marshal_with(kind_serializer)
+    @marshal_with(kind_serializer_with_relations)
     def get(self, id):
         """List Kind"""
         item = load(Kind, id)
+        item.tags = [
+            {"id": tag.id, "name": f"{tag.tag.name}: {tag.amount}", "amount": tag.amount} for tag in item.kind_to_tags
+        ]
+        item.flavors = [
+            {
+                "id": flavor.flavor.id,
+                "name": flavor.flavor.name,
+                "icon": flavor.flavor.icon,
+                "color": flavor.flavor.color,
+            }
+            for flavor in item.kind_to_flavors
+        ]
         return item, 200
 
     @roles_accepted("admin")

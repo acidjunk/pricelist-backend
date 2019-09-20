@@ -20,24 +20,24 @@ def test_kinds_endpoint_without_auth(client, kind_1):
 
 def test_categories_endpoint_without_auth(client, category_1):
     response = client.get("/v1/categories", follow_redirects=True)
-    assert response.status_code == 401
+    assert response.status_code == 403
 
 
 def test_tags_endpoint_without_auth(client, tag_1):
     response = client.get("/v1/tags", follow_redirects=True)
-    assert response.status_code == 401
+    assert response.status_code == 403
 
 
 def test_flavors_endpoint_without_auth(client, flavor_1):
     response = client.get("/v1/flavors", follow_redirects=True)
-    assert response.status_code == 401
+    assert response.status_code == 403
 
 
 def test_price_endpoint_without_auth(client):
     response = client.get("/v1/prices", follow_redirects=True)
-    assert response.status_code == 401
+    assert response.status_code == 403
 
 
 def test_users_endpoint_without_auth(client, member):
     response = client.get("/v1/users", follow_redirects=True)
-    assert response.status_code == 401
+    assert response.status_code == 403
