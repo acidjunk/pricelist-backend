@@ -23,8 +23,8 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 
 
 @api.route("/")
-@api.doc("Create flavors")
-class KindsToFlavorsResource(Resource):
+@api.doc("KindsToFlavos")
+class KindsToFlavorsResourceList(Resource):
     @marshal_with(kind_to_flavor_serializer)
     @api.doc(parser=parser)
     def get(self):
@@ -58,7 +58,7 @@ class KindsToFlavorsResource(Resource):
 
 @api.route("/<id>")
 @api.doc("KindToFlavor detail operations.")
-class KindToFlavorResource(Resource):
+class KindsToFlavorsResource(Resource):
     @roles_accepted("admin")
     @marshal_with(kind_to_flavor_serializer)
     def get(self, id):

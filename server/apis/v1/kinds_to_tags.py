@@ -25,7 +25,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 
 @api.route("/")
 @api.doc("Create tags")
-class KindsToTagsResource(Resource):
+class KindsToTagsResourceList(Resource):
     @marshal_with(kind_to_tag_serializer)
     @api.doc(parser=parser)
     def get(self):
@@ -59,7 +59,7 @@ class KindsToTagsResource(Resource):
 
 @api.route("/<id>")
 @api.doc("KindToTag detail operations.")
-class KindToTagResource(Resource):
+class KindsToTagsResource(Resource):
     @roles_accepted("admin")
     @marshal_with(kind_to_tag_serializer)
     def get(self, id):
