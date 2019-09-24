@@ -2,7 +2,7 @@ import uuid
 
 import structlog
 from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
-from database import Shop, ShopToPrice
+from database import Category, Price, Shop, ShopToPrice
 from flask_restplus import Namespace, Resource, fields, marshal_with
 from flask_security import roles_accepted
 
@@ -12,9 +12,12 @@ api = Namespace("shops", description="Shop related operations")
 
 price_fields = {
     "id": fields.String,
+    "internal_product_id": fields.Integer,
     "active": fields.Boolean,
     "category_id": fields.String,
+    "category_name": fields.String,
     "kind_id": fields.String,
+    "kind_name": fields.String,
     "half": fields.Float,
     "one": fields.Float,
     "two_five": fields.Float,
@@ -75,13 +78,21 @@ class ShopResource(Resource):
     def get(self, id):
         """List Shop"""
         item = load(Shop, id)
-        price_relations = ShopToPrice.query.filter_by(shop_id=item.id).all()
+        price_relations = (
+            ShopToPrice.query.filter_by(shop_id=item.id)
+            .join(ShopToPrice.price)
+            .join(ShopToPrice.category)
+            .order_by(Category.name, Price.internal_product_id)
+            .all()
+        )
         item.prices = [
             {
                 "id": pr.id,
                 "active": pr.active,
                 "category_id": pr.category_id,
+                "category_name": pr.category.name,
                 "kind_id": pr.kind_id,
+                "kind_name": pr.kind.name,
                 "internal_product_id": pr.price.internal_product_id,
                 "half": pr.price.half if pr.use_half else None,
                 "one": pr.price.one if pr.use_one else None,
