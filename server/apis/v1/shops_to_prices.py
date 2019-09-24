@@ -33,17 +33,17 @@ shop_to_price_serializer_with_prices = {
     "category_id": fields.String(description="Category Id"),
     "kind_id": fields.String(required=True, description="Kind Id"),
     "use_half": fields.Boolean(default=True, description="Show the price for 0.5g?"),
-    "half": fields.Float(description="Price for half gram"),
+    "half": fields.String(description="Price for half gram"),
     "use_one": fields.Boolean(default=True, description="Show the price for 1?"),
-    "one": fields.Float(description="Price for one gram"),
+    "one": fields.String(description="Price for one gram"),
     "use_two_five": fields.Boolean(default=True, description="Show the price for 2.5g?"),
-    "two_five": fields.Float(description="Price for two and a half gram"),
+    "two_five": fields.String(description="Price for two and a half gram"),
     "use_five": fields.Boolean(default=True, description="Show the price for 5g?"),
-    "five": fields.Float(description="Price for five gram"),
+    "five": fields.String(description="Price for five gram"),
     "use_joint": fields.Boolean(default=True, description="Show the price for joint?"),
-    "joint": fields.Float(description="Price for one joint"),
+    "joint": fields.String(description="Price for one joint"),
     "use_piece": fields.Boolean(default=True, description="Show the price for one piece?"),
-    "piece": fields.Float(description="Price for one item"),
+    "piece": fields.String(description="Price for one item"),
 }
 
 parser = api.parser()
@@ -83,24 +83,26 @@ class ShopsToPricesResourceList(Resource):
         if not price or not shop or not kind:
             abort(400, "Price or shop or kind not found")
 
-        check_query = ShopToPrice.query.filter_by(shop_id=shop.id).filter_by(price_id=price.id).all()
+        check_query = (
+            ShopToPrice.query.filter_by(shop_id=shop.id).filter_by(price_id=price.id).filter_by(kind_id=kind.id).all()
+        )
         if len(check_query) > 0:
             abort(409, "Relation already exists")
 
         data = api.payload
         shop_to_price = ShopToPrice(
             id=str(uuid.uuid4()),
-            active=data["active"],
+            active=data["active"] if data.get("active") else False,
             kind=kind,
             category=category,
             shop=shop,
             price=price,
-            use_half=data["use_half"],
-            use_one=data["use_one"],
-            use_two_five=data["use_two_five"],
-            use_five=data["use_five"],
-            use_joint=data["use_joint"],
-            use_piece=data["use_piece"],
+            use_half=data["use_half"] if data.get("use_half") else False,
+            use_one=data["use_one"] if data.get("use_one") else False,
+            use_two_five=data["use_two_five"] if data.get("use_two_five") else False,
+            use_five=data["use_five"] if data.get("use_five") else False,
+            use_joint=data["use_joint"] if data.get("use_joint") else False,
+            use_piece=data["use_piece"] if data.get("use_piece") else False,
         )
         save(shop_to_price)
         return shop_to_price, 201
@@ -115,10 +117,12 @@ class ShopToPriceResource(Resource):
         """List ShopToPrice"""
         item = load(ShopToPrice, id)
         price = Price.query.filter(Price.id == item.price_id).first()
-        item.half = price.half
-        item.one = price.one
-        item.two_five = price.two_five
-        item.five = price.five
+        item.half = price.half if price.half else "N/A"
+        item.one = price.one if price.one else "N/A"
+        item.two_five = price.two_five if price.two_five else "N/A"
+        item.five = price.five if price.five else "N/A"
+        item.joint = price.joint if price.joint else "N/A"
+        item.piece = price.piece if price.piece else "N/A"
 
         return item, 200
 

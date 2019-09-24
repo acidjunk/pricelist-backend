@@ -22,6 +22,15 @@ category_serializer = api.model(
     },
 )
 
+category_serializer_with_shop_names = {
+    "id": fields.String(required=True),
+    "name": fields.String(required=True, description="Category name"),
+    "shop_id": fields.String(required=True, description="Shop Id"),
+    "shop_name": fields.String(description="Shop Name"),
+    "category_and_shop": fields.String(description="Category + shop name"),
+}
+
+
 parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
 parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
@@ -32,7 +41,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.doc("Show all categories.")
 class CategoryResourceList(Resource):
     @roles_accepted("admin")
-    @marshal_with(category_serializer)
+    @marshal_with(category_serializer_with_shop_names)
     @api.doc(parser=parser)
     def get(self):
         """List Categories"""
@@ -41,6 +50,10 @@ class CategoryResourceList(Resource):
         sort = get_sort_from_args(args)
 
         query_result, content_range = query_with_filters(Category, Category.query, range, sort, "")
+        for result in query_result:
+            result.shop_name = result.shop.name
+            result.category_and_shop = f"{result.shop.name}:{result.name}"
+
         return query_result, 200, {"Content-Range": content_range}
 
     @roles_accepted("admin")
@@ -57,10 +70,12 @@ class CategoryResourceList(Resource):
 @api.doc("Category detail operations.")
 class CategoryResource(Resource):
     @roles_accepted("admin")
-    @marshal_with(category_serializer)
+    @marshal_with(category_serializer_with_shop_names)
     def get(self, id):
         """List Category"""
         item = load(Category, id)
+        item.shop_name = item.shop.name
+        item.category_and_shop = f"{item.shop.name}:{item.name}"
         return item, 200
 
     @roles_accepted("admin")
