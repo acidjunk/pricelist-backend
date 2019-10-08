@@ -22,6 +22,10 @@ kind_serializer = api.model(
         "description_nl": fields.String(description="EN Description as shown in the detail view"),
         "short_description_en": fields.String(description="NL Description as shown in the price list"),
         "description_en": fields.String(description="EN Description as shown in the detail view"),
+        "c": fields.Boolean(description="CBD?"),
+        "h": fields.Boolean(description="Hybrid?"),
+        "i": fields.Boolean(description="Indica?"),
+        "s": fields.Boolean(description="Sativa?"),
     },
 )
 
@@ -32,6 +36,10 @@ kind_serializer_with_relations = {
     "description_nl": fields.String(description="EN Description as shown in the detail view"),
     "short_description_en": fields.String(description="NL Description as shown in the price list"),
     "description_en": fields.String(description="EN Description as shown in the detail view"),
+    "c": fields.Boolean(description="CBD?"),
+    "h": fields.Boolean(description="Hybrid?"),
+    "i": fields.Boolean(description="Indica?"),
+    "s": fields.Boolean(description="Sativa?"),
     "tags": fields.Nested(tag_fields),
     "flavors": fields.Nested(flavor_fields),
 }
