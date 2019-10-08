@@ -90,7 +90,7 @@ class Shop(db.Model):
 class Category(db.Model):
     __tablename__ = "categories"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    name = Column(String(255), unique=True, index=True)
+    name = Column(String(255))
     description = Column(String(255), unique=True, index=True)
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     shop = db.relationship("Shop", lazy=True)
