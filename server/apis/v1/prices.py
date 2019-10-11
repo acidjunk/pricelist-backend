@@ -1,7 +1,15 @@
 import uuid
 
 import structlog
-from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
+from apis.helpers import (
+    get_filter_from_args,
+    get_range_from_args,
+    get_sort_from_args,
+    load,
+    query_with_filters,
+    save,
+    update,
+)
 from database import Price
 from flask_restplus import Namespace, Resource, fields, marshal_with
 from flask_security import roles_accepted
@@ -44,8 +52,11 @@ class PriceResourceList(Resource):
         args = parser.parse_args()
         range = get_range_from_args(args)
         sort = get_sort_from_args(args, "internal_product_id")
+        filter = get_filter_from_args(args)
 
-        query_result, content_range = query_with_filters(Price, Price.query, range, sort, "")
+        query_result, content_range = query_with_filters(
+            Price, Price.query, range, sort, filter, quick_search_columns=["internal_product_id"]
+        )
         return query_result, 200, {"Content-Range": content_range}
 
     @roles_accepted("admin")

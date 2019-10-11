@@ -1,9 +1,9 @@
-from typing import List
+from ast import literal_eval
+from typing import Dict, List, Optional
 
 import structlog
 from database import db
 from flask_restplus import abort
-from more_itertools import chunked
 from sqlalchemy import String, cast
 from sqlalchemy.sql import expression
 
@@ -43,6 +43,23 @@ def get_sort_from_args(args, default_sort="name"):
     return sort
 
 
+def get_filter_from_args(args, default_filter=None):
+    filter = {}
+    print("Args")
+    print(args)
+    if args["filter"]:
+        try:
+            filter = literal_eval(args["filter"])
+            logger.info("Query parameters set to custom filter", filter=filter)
+            return filter
+        except:  # noqa: E722
+            logger.warning("Query parameters not parsable", args=args.get(["filter"], "No filter provided"))
+        return range
+    filter = default_filter  # Stuff not setup to filter -> Default filter
+    logger.info("Query parameters set to default filter", filter=filter)
+    return filter
+
+
 def save(item):
     try:
         db.session.add(item)
@@ -70,27 +87,45 @@ def update(item, payload):
     return item
 
 
-def query_with_filters(model, query, range: List[int] = None, sort: List[str] = None, filters: List[str] = None):
-    if filters is not None:
-        for filter in chunked(filters, 2):
-            if filter and len(filter) == 2:
-                field = filter[0]
-                value = filter[1]
-                # Todo Make filter better Field aware
-                value_as_bool = value in ("Yes", "Y", "y", "True", "TRUE", "true")  # noqa: F841
-                if value is not None:
-                    if field.endswith("_gt"):
-                        query = query.filter(model.__dict__[field[:-3]] > value)
-                    elif field.endswith("_gte"):
-                        query = query.filter(model.__dict__[field[:-4]] >= value)
-                    elif field.endswith("_lte"):
-                        query = query.filter(model.__dict__[field[:-4]] <= value)
-                    elif field.endswith("_lt"):
-                        query = query.filter(model.__dict__[field[:-3]] < value)
-                    elif field.endswith("_ne"):
-                        query = query.filter(model.__dict__[field[:-3]] != value)
-                    else:
-                        query = query.filter(cast(model.__dict__[field], String).ilike("%" + value + "%"))
+def query_with_filters(
+    model,
+    query,
+    range: List[int] = None,
+    sort: List[str] = None,
+    filters: Optional[Dict] = None,
+    quick_search_columns: List = ["name"],
+):
+    if filters != "":
+        for column, searchPhrase in filters.items():
+            if isinstance(searchPhrase, list):
+                # OR query
+                logger.error("Returning first only: todo fix", first_item=searchPhrase[0])
+                searchPhrase = searchPhrase[0]
+            logger.info("TYPE", searchPhrase=type(searchPhrase))
+            logger.info("Query parameters set to custom filter for column", column=column, searchPhrase=searchPhrase)
+
+            if searchPhrase is not None:
+                if column.endswith("_gt"):
+                    query = query.filter(model.__dict__[column[:-3]] > searchPhrase)
+                elif column.endswith("_gte"):
+                    query = query.filter(model.__dict__[column[:-4]] >= searchPhrase)
+                elif column.endswith("_lte"):
+                    query = query.filter(model.__dict__[column[:-4]] <= searchPhrase)
+                elif column.endswith("_lt"):
+                    query = query.filter(model.__dict__[column[:-3]] < searchPhrase)
+                elif column.endswith("_ne"):
+                    query = query.filter(model.__dict__[column[:-3]] != searchPhrase)
+                elif column == "id":
+                    query = query.filter_by(id=searchPhrase)
+                elif column == "q":
+                    logger.debug(
+                        "Activating multi kolom filter", column=column, quick_search_columns=quick_search_columns
+                    )
+                    for item in quick_search_columns:
+                        query = query.filter(cast(model.__dict__[item], String).ilike("%" + searchPhrase + "%"))
+
+                else:
+                    query = query.filter(cast(model.__dict__[column], String).ilike("%" + searchPhrase + "%"))
 
     if sort and len(sort) == 2:
         if sort[1].upper() == "DESC":
