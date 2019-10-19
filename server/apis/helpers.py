@@ -43,10 +43,7 @@ def get_sort_from_args(args, default_sort="name"):
     return sort
 
 
-def get_filter_from_args(args, default_filter=None):
-    filter = {}
-    print("Args")
-    print(args)
+def get_filter_from_args(args, default_filter={}):
     if args["filter"]:
         try:
             filter = literal_eval(args["filter"])
@@ -55,8 +52,7 @@ def get_filter_from_args(args, default_filter=None):
         except:  # noqa: E722
             logger.warning("Query parameters not parsable", args=args.get(["filter"], "No filter provided"))
         return range
-    filter = default_filter  # Stuff not setup to filter -> Default filter
-    logger.info("Query parameters set to default filter", filter=filter)
+    logger.info("Query parameters set to default filter", filter=default_filter)
     return filter
 
 
