@@ -124,7 +124,7 @@ class Kind(db.Model):
 class Price(db.Model):
     __tablename__ = "prices"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    internal_product_id = Column("internal_product_id", Integer(), unique=True)
+    internal_product_id = Column("internal_product_id", String(), unique=True)
     half = Column("half", Float(), nullable=True)
     one = Column("one", Float(), nullable=True)
     two_five = Column("two_five", Float(), nullable=True)

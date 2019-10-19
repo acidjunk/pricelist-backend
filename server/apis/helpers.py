@@ -53,7 +53,7 @@ def get_filter_from_args(args, default_filter={}):
             logger.warning("Query parameters not parsable", args=args.get(["filter"], "No filter provided"))
         return range
     logger.info("Query parameters set to default filter", filter=default_filter)
-    return filter
+    return default_filter
 
 
 def save(item):

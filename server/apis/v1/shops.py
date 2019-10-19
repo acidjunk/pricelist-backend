@@ -12,7 +12,7 @@ api = Namespace("shops", description="Shop related operations")
 
 price_fields = {
     "id": fields.String,
-    "internal_product_id": fields.Integer,
+    "internal_product_id": fields.String,
     "active": fields.Boolean,
     "category_id": fields.String,
     "category_name": fields.String,

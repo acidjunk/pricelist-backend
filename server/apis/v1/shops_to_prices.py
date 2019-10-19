@@ -53,7 +53,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 
 
 @api.route("/")
-@api.doc("ShopsToFlavos")
+@api.doc("ShopsToPrices")
 class ShopsToPricesResourceList(Resource):
     @marshal_with(shop_to_price_serializer)
     @api.doc(parser=parser)

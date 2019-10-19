@@ -25,7 +25,7 @@ price_serializer = api.model(
     "Price",
     {
         "id": fields.String(),
-        "internal_product_id": fields.Integer(required=True, description="POS ID"),
+        "internal_product_id": fields.String(required=True, description="POS ID"),
         "half": fields.Float(description="Price for half gram"),
         "one": fields.Float(description="Price for one gram"),
         "two_five": fields.Float(description="Price for two and a half gram"),
