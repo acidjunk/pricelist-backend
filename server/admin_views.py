@@ -111,3 +111,8 @@ class KindAdminView(AuthModelMixin):
 
 class BaseAdminView(AuthModelMixin):
     can_set_page_size = True
+
+
+class PriceAdminView(BaseAdminView):
+    can_set_page_size = True
+    column_default_sort = ("internal_product_id", False)

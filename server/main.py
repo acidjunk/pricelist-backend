@@ -4,7 +4,15 @@ import os
 import click
 import flask
 import structlog
-from admin_views import BaseAdminView, CategoryAdminView, KindAdminView, RolesAdminView, ShopAdminView, UserAdminView
+from admin_views import (
+    BaseAdminView,
+    CategoryAdminView,
+    KindAdminView,
+    PriceAdminView,
+    RolesAdminView,
+    ShopAdminView,
+    UserAdminView,
+)
 from apis import api
 from database import (
     Category,
@@ -167,7 +175,7 @@ mail.init_app(app)
 admin.add_view(ShopAdminView(Shop, db.session))
 admin.add_view(CategoryAdminView(Category, db.session))
 admin.add_view(KindAdminView(Kind, db.session))
-admin.add_view(BaseAdminView(Price, db.session))
+admin.add_view(PriceAdminView(Price, db.session))
 admin.add_view(UserAdminView(User, db.session))
 admin.add_view(RolesAdminView(Role, db.session))
 admin.add_view(BaseAdminView(Tag, db.session))
