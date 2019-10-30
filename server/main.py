@@ -8,6 +8,7 @@ from admin_views import (
     BaseAdminView,
     CategoryAdminView,
     KindAdminView,
+    OrderAdminView,
     PriceAdminView,
     RolesAdminView,
     ShopAdminView,
@@ -20,6 +21,7 @@ from database import (
     Kind,
     KindToFlavor,
     KindToTag,
+    Order,
     Price,
     Role,
     Shop,
@@ -173,6 +175,7 @@ api.init_app(app)
 db.init_app(app)
 mail.init_app(app)
 admin.add_view(ShopAdminView(Shop, db.session))
+admin.add_view(OrderAdminView(Order, db.session))
 admin.add_view(CategoryAdminView(Category, db.session))
 admin.add_view(KindAdminView(Kind, db.session))
 admin.add_view(PriceAdminView(Price, db.session))

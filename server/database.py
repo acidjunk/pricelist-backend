@@ -3,7 +3,7 @@ import uuid
 
 from flask_security import RoleMixin, SQLAlchemySessionUserDatastore, UserMixin
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import backref, relationship
 
@@ -134,6 +134,22 @@ class Price(db.Model):
 
     def __repr__(self):
         return f"Price for product_id: {self.internal_product_id}"
+
+
+class Order(db.Model):
+    __tablename__ = "orders"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    shop_id = Column(UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
+    order_info = Column(JSON)
+    total = Column(Float())
+    status = Column(String(), default="pending")
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+
+    shop = db.relationship("Shop", lazy=True)
+
+    def __repr__(self):
+        return "<Order for shop: %s with total: %s>" % (self.shop.name, self.total)
 
 
 # Tag many to many relations

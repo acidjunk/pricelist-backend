@@ -109,6 +109,14 @@ class KindAdminView(AuthModelMixin):
     form_overrides = dict(description_nl=TextAreaField, description_en=TextAreaField)
 
 
+class OrderAdminView(AuthModelMixin):
+    column_list = ["shop_id", "status", "total", "created_at", "completed_at"]
+    column_default_sort = ("created_at", True)
+    column_filters = ("status",)
+    column_searchable_list = ("id", "shop_id", "created_at")
+    can_set_page_size = True
+
+
 class BaseAdminView(AuthModelMixin):
     can_set_page_size = True
 
