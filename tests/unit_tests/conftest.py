@@ -6,6 +6,7 @@ from contextlib import closing
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import make_url
+from tests.unit_tests.helpers import login
 
 from server.database import Category, Flavor, Kind, Price, Role, Shop, Tag, User, db, user_datastore
 
@@ -129,7 +130,7 @@ def member_logged_in(member):
 
 
 @pytest.fixture
-def shop_unconfirmed(user_roles):
+def shop_admin_unconfirmed(user_roles):
     user = user_datastore.create_user(username="shop", password=SHOP_PASSWORD, email=SHOP_EMAIL)
     user_datastore.add_role_to_user(user, "shop")
     db.session.commit()
@@ -137,7 +138,7 @@ def shop_unconfirmed(user_roles):
 
 
 @pytest.fixture
-def shop(shop_unconfirmed):
+def shop_admin(shop_admin_unconfirmed):
     user = User.query.filter(User.email == SHOP_EMAIL).first()
     user.confirmed_at = datetime.datetime.utcnow()
     db.session.commit()
@@ -145,11 +146,10 @@ def shop(shop_unconfirmed):
 
 
 @pytest.fixture
-def teacher_logged_in(teacher):
-    user = User.query.filter(User.email == SHOP_EMAIL).first()
-    # Todo: actually login/handle cookie
-    # db.session.commit()
-    return user
+def shop_admin_logged_in(shop_admin, client):
+    response = login(client, SHOP_EMAIL, SHOP_PASSWORD)
+    assert response.status_code == 200
+    return client
 
 
 @pytest.fixture

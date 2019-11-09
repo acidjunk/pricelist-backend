@@ -21,7 +21,7 @@ def test_unconfirmed_member_login(client, member_unconfirmed):
     assert response.status_code == 400
 
 
-def test_shop_login(client, shop):
+def test_shop_login(client, shop_admin):
     """Make sure login and logout works."""
     response = login(client, SHOP_EMAIL, SHOP_PASSWORD)
     assert response.status_code == 200
@@ -33,7 +33,7 @@ def test_shop_login(client, shop):
     assert response.json["response"]["errors"]["password"] == ["Invalid password"]
 
 
-def test_unconfirmed_shop_login(client, shop_unconfirmed):
+def test_unconfirmed_shop_login(client, shop_admin_unconfirmed):
     """Make sure login shows confirmation error."""
     response = login(client, SHOP_EMAIL, SHOP_PASSWORD)
     assert response.json["response"]["errors"]["email"][0] == "Email requires confirmation."
