@@ -1,7 +1,15 @@
 import uuid
 
 import structlog
-from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
+from apis.helpers import (
+    get_filter_from_args,
+    get_range_from_args,
+    get_sort_from_args,
+    load,
+    query_with_filters,
+    save,
+    update,
+)
 from database import Category
 from flask_restplus import Namespace, Resource, fields, marshal_with
 from flask_security import roles_accepted
@@ -45,8 +53,9 @@ class CategoryResourceList(Resource):
         args = parser.parse_args()
         range = get_range_from_args(args)
         sort = get_sort_from_args(args)
+        filter = get_filter_from_args(args)
 
-        query_result, content_range = query_with_filters(Category, Category.query, range, sort, "")
+        query_result, content_range = query_with_filters(Category, Category.query, range, sort, filter)
         for result in query_result:
             result.shop_name = result.shop.name
             result.category_and_shop = f"{result.shop.name}:{result.name}"

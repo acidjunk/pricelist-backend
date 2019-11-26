@@ -94,6 +94,7 @@ class Category(db.Model):
     description = Column(String(255), unique=True, index=True)
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     shop = db.relationship("Shop", lazy=True)
+    order_number = Column(Integer, default=0)
 
     def __repr__(self):
         return f"{self.shop.name}: {self.name}"
@@ -113,6 +114,7 @@ class Kind(db.Model):
     s = Column(Boolean(), default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.datetime.utcnow)
+    approved_at = Column(DateTime)
     kind_tags = relationship("Tag", secondary="kinds_to_tags")
     kind_to_tags = relationship("KindToTag")
     kind_flavors = relationship("Flavor", secondary="kinds_to_flavors")
@@ -125,11 +127,12 @@ class Kind(db.Model):
 class KindImage(db.Model):
     __tablename__ = "kind_images"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    original_name = Column(String(255))
+    name = Column(String(255))
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.datetime.utcnow)
     kind_id = Column("kind_id", UUID(as_uuid=True), ForeignKey("kinds.id"), index=True)
     kind = db.relationship("Kind", lazy=True)
+    order_number = Column(Integer, default=0)
 
 
 class Price(db.Model):
