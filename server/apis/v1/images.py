@@ -37,7 +37,7 @@ class FileUpload(Resource):
     def post(self):
         args = file_upload.parse_args()
         if args["file"].mimetype == "application/png" or 1:
-            destination = os.path.join(current_app.config.get("DATA_FOLDER"), "medias/")
+            destination = os.path.join(current_app.config.get("DATA_FOLDER", "data"), "medias/")
             if not os.path.exists(destination):
                 os.makedirs(destination)
             png_file = "%s%s" % (destination, "custom_file_name.png")
