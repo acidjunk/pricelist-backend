@@ -50,6 +50,9 @@ kind_serializer_with_relations = {
     "s": fields.Boolean(description="Sativa?"),
     "tags": fields.Nested(tag_fields),
     "flavors": fields.Nested(flavor_fields),
+    "created_at": fields.DateTime(description="Creation date"),
+    "modified_at": fields.DateTime(description="Last modification date"),
+    "approved_at": fields.DateTime(description="Ready for sale date"),
 }
 
 

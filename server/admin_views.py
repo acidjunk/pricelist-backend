@@ -99,7 +99,8 @@ class KindAdminView(AuthModelMixin):
         "s",
         "short_description_nl",
         "short_description_en",
-        "created_at",
+        "modified_at",
+        "approved_at",
     ]
     column_default_sort = ("created_at", True)
     column_filters = ("c", "h", "i", "s")

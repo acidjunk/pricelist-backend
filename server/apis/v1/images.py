@@ -1,9 +1,10 @@
-import uuid
+import os
 
 import structlog
-from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
+from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, update
 from database import KindImage
-from flask_restplus import Namespace, Resource, fields, marshal_with
+from flask import current_app
+from flask_restplus import Namespace, Resource, abort, fields, marshal_with, reqparse
 from flask_security import roles_accepted
 from werkzeug.datastructures import FileStorage
 
@@ -15,7 +16,7 @@ image_serializer = api.model(
     "KindImage",
     {
         "id": fields.String(required=True),
-        "original_name": fields.String(required=True, description="Original File Name"),
+        "name": fields.String(required=True, description="File Name"),
         "kind_id": fields.String(required=True, description="Kind Id"),
     },
 )
@@ -26,8 +27,24 @@ parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
 parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
 parser.add_argument("filter", location="args", help="Filter default=[]")
 
-upload_parser = api.parser()
-upload_parser.add_argument("file", location="files", type=FileStorage, required=True)
+file_upload = reqparse.RequestParser()
+file_upload.add_argument("file", type=FileStorage, location="files", required=True, help="file")
+
+
+@api.route("/upload/")
+class FileUpload(Resource):
+    @api.expect(file_upload)
+    def post(self):
+        args = file_upload.parse_args()
+        if args["file"].mimetype == "application/png" or 1:
+            destination = os.path.join(current_app.config.get("DATA_FOLDER"), "medias/")
+            if not os.path.exists(destination):
+                os.makedirs(destination)
+            png_file = "%s%s" % (destination, "custom_file_name.png")
+            args["file"].save(png_file)
+        else:
+            abort(404)
+        return {"status": "Done"}
 
 
 @api.route("/")
@@ -48,16 +65,6 @@ class KindImageResourceList(Resource):
             result.image_and_shop = f"{result.shop.name}:{result.name}"
 
         return query_result, 200, {"Content-Range": content_range}
-
-    @roles_accepted("admin")
-    # @api.expect(image_serializer)
-    @api.expect(upload_parser)
-    # @api.marshal_with(image_serializer)
-    def post(self):
-        """New Image"""
-        image = KindImage(id=str(uuid.uuid4()), **api.payload)
-        save(image)
-        return image, 201
 
 
 @api.route("/<id>")
