@@ -1,9 +1,14 @@
+import base64
+import io
+import os
 from ast import literal_eval
 from typing import Dict, List, Optional
 
 import structlog
 from database import db
+from flask import current_app
 from flask_restplus import abort
+from PIL import Image
 from sqlalchemy import String, cast
 from sqlalchemy.sql import expression
 
@@ -73,8 +78,9 @@ def load(model, id):
 
 
 def update(item, payload):
-    try:
+    if payload.get("id"):
         del payload["id"]
+    try:
         for column, value in payload.items():
             setattr(item, column, value)
         save(item)
@@ -144,3 +150,31 @@ def query_with_filters(
     content_range = f"items {range_start}-{range_end}/{total}"
 
     return query.all(), content_range
+
+
+def upload_file(blob, file_name):
+    destination = os.path.join(current_app.config.get("DATA_FOLDER", "data"), "medias/")
+    if not os.path.exists(destination):
+        os.makedirs(destination)
+    image_mime, image_base64 = blob.split(",")
+    image = base64.b64decode(image_base64)
+
+    imagePath = os.path.join(destination, file_name)
+    img = Image.open(io.BytesIO(image))
+    img.save(imagePath, "png")
+
+
+def name_file(column_name, kind_name, image_name=""):
+    _, _, image_number = column_name.rpartition("_")[0:3]
+    current_name = image_name
+    extension = "png"  # todo: make it dynamic e.g. get it from mime-type, extra arg for this function?
+    if not current_name:
+        name = "".join([c if c.isalnum() else "-" for c in kind_name])
+        name = f"{name}-{image_number}-1".lower()
+    else:
+        name, _ = current_name.split(".")
+        name, _, counter = name.rpartition("-")[0:3]
+        name = f"{name}-{int(counter) + 1}".lower()
+    name = f"{name}.{extension}"
+    logger.info("Named file", col_name=column_name, name_in=image_name, name_out=name)
+    return name

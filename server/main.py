@@ -170,6 +170,12 @@ def get_qr_product_image(shop_id, category_id, product_id):
     return flask.send_file(img_buf, mimetype="image/png")
 
 
+# @app.before_request
+# def log_request_info():
+#     app.logger.debug("Headers: %s", request.headers)
+#     app.logger.debug("Body: %s", request.get_data())
+
+
 # Views
 api.init_app(app)
 db.init_app(app)

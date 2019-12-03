@@ -1,13 +1,17 @@
-import os
-
 import structlog
 from apis.helpers import (
-    get_range_from_args, get_sort_from_args, load, query_with_filters, update,
-    get_filter_from_args, save
+    get_filter_from_args,
+    get_range_from_args,
+    get_sort_from_args,
+    load,
+    name_file,
+    query_with_filters,
+    update,
+    upload_file,
 )
 from database import Kind
-from flask import current_app
-from flask_restplus import Namespace, Resource, abort, fields, marshal_with, reqparse
+from flask import request
+from flask_restplus import Namespace, Resource, fields, marshal_with, reqparse
 from flask_security import roles_accepted
 from werkzeug.datastructures import FileStorage
 
@@ -65,9 +69,6 @@ class KindImageResourceList(Resource):
             filter,
             quick_search_columns=["name", "image_1", "image_2", "image_3", "image_4", "image_5", "image_6"],
         )
-        # for result in query_result:
-        #     result.shop_name = result.shop.name
-        #     result.image_and_shop = f"{result.shop.name}:{result.name}"
 
         return query_result, 200, {"Content-Range": content_range}
 
@@ -83,19 +84,24 @@ class KindImageResource(Resource):
         return item, 200
 
     @api.expect(file_upload)
+    @marshal_with(image_serializer)
     def put(self, id):
         args = file_upload.parse_args()
-        print(args)
+        logger.warning("Ignoring files via args! (using JSON body)", args=args)
         item = load(Kind, id)
-        if args["image_1"].mimetype == "application/png" or 1:
-            destination = os.path.join(current_app.config.get("DATA_FOLDER", "data"), "medias/")
-            if not os.path.exists(destination):
-                os.makedirs(destination)
-            png_file = "%s%s" % (destination, "custom_file_name.png")
-            args["file"].save(png_file)
-            item.image_1 = "custom_file_name"
-            save(item)
-            return item, 201
-        else:
-            abort(404)
-        return {"status": "Done"}
+        # todo: raise 404 o abort
+
+        data = request.get_json()
+
+        kind_update = {}
+        image_cols = ["image_1", "image_2", "image_3", "image_4", "image_5", "image_6"]
+        for image_col in image_cols:
+            if data.get(image_col) and type(data[image_col]) == dict:
+                name = name_file(image_col, item.name, getattr(item, image_col))
+                upload_file(data[image_col]["src"], name)  # todo: use mime-type in first part of
+                kind_update[image_col] = name
+
+        if kind_update:
+            item = update(item, kind_update)
+
+        return item, 201
