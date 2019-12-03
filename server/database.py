@@ -119,20 +119,15 @@ class Kind(db.Model):
     kind_to_tags = relationship("KindToTag")
     kind_flavors = relationship("Flavor", secondary="kinds_to_flavors")
     kind_to_flavors = relationship("KindToFlavor")
+    image_1 = Column(String(255), unique=True, index=True)
+    image_2 = Column(String(255), unique=True, index=True)
+    image_3 = Column(String(255), unique=True, index=True)
+    image_4 = Column(String(255), unique=True, index=True)
+    image_5 = Column(String(255), unique=True, index=True)
+    image_6 = Column(String(255), unique=True, index=True)
 
     def __repr__(self):
         return "<Kinds %r, id:%s>" % (self.name, self.id)
-
-
-class KindImage(db.Model):
-    __tablename__ = "kind_images"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    name = Column(String(255))
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    modified_at = Column(DateTime, default=datetime.datetime.utcnow)
-    kind_id = Column("kind_id", UUID(as_uuid=True), ForeignKey("kinds.id"), index=True)
-    kind = db.relationship("Kind", lazy=True)
-    order_number = Column(Integer, default=0)
 
 
 class Price(db.Model):
