@@ -49,7 +49,17 @@ kind_serializer_with_relations = {
     "i": fields.Boolean(description="Indica?"),
     "s": fields.Boolean(description="Sativa?"),
     "tags": fields.Nested(tag_fields),
+    "tags_amount": fields.Integer("Number of tags"),
     "flavors": fields.Nested(flavor_fields),
+    "flavors_amount": fields.Integer("Number of flavors"),
+    "images_amount": fields.Integer("Number of images"),
+    "image_1": fields.String(required=True, description="File Name 1"),
+    "image_2": fields.String(required=True, description="File Name 2"),
+    "image_3": fields.String(required=True, description="File Name 3"),
+    "image_4": fields.String(required=True, description="File Name 4"),
+    "image_5": fields.String(required=True, description="File Name 5"),
+    "image_6": fields.String(required=True, description="File Name 6"),
+    "complete": fields.Boolean(description="Complete?"),
     "created_at": fields.DateTime(description="Creation date"),
     "modified_at": fields.DateTime(description="Last modification date"),
     "approved_at": fields.DateTime(description="Ready for sale date"),
@@ -80,8 +90,7 @@ class KindResourceList(Resource):
             range,
             sort,
             filter,
-            # quick_search_columns=["name", "short_description_nl", "short_description_en"],
-            quick_search_columns=["short_description_nl", "name", "short_description_en"],
+            quick_search_columns=["name", "short_description_nl", "short_description_en"],
         )
         # Todo: return items from selected shop/category
         for kind in query_result:
@@ -89,10 +98,18 @@ class KindResourceList(Resource):
                 {"id": tag.id, "name": f"{tag.tag.name}: {tag.amount}", "amount": tag.amount}
                 for tag in kind.kind_to_tags
             ]
+            kind.tags_amount = len(kind.tags)
             kind.flavors = [
                 {"id": flavor.id, "name": flavor.flavor.name, "icon": flavor.flavor.icon, "color": flavor.flavor.color}
                 for flavor in kind.kind_to_flavors
             ]
+            kind.flavors_amount = len(kind.flavors)
+            kind.images_amount = 0
+            for i in [1, 2, 3, 4, 5, 6]:
+                if getattr(kind, f"image_{i}"):
+                    kind.images_amount += 1
+
+            kind.complete = True if kind.flavors_amount >= 3 and kind.tags_amount >= 4 and kind.image_1 else False
         return query_result, 200, {"Content-Range": content_range}
 
     @roles_accepted("admin")
@@ -113,10 +130,17 @@ class KindResource(Resource):
         """List Kind"""
         item = load(Kind, id)
         item.tags = [{"id": tag.id, "name": tag.tag.name, "amount": tag.amount} for tag in item.kind_to_tags]
+        item.tags_amount = len(item.tags)
         item.flavors = [
             {"id": flavor.id, "name": flavor.flavor.name, "icon": flavor.flavor.icon, "color": flavor.flavor.color}
             for flavor in item.kind_to_flavors
         ]
+        item.flavors_amount = len(item.flavors)
+        item.images_amount = 0
+        for i in [1, 2, 3, 4, 5, 6]:
+            if getattr(item, f"image_{i}"):
+                item.images_amount += 1
+        item.complete = True if item.flavors_amount >= 3 and item.tags_amount >= 4 and item.image_1 else False
         return item, 200
 
     @roles_accepted("admin")
