@@ -74,7 +74,15 @@ class KindResourceList(Resource):
         sort = get_sort_from_args(args)
         filter = get_filter_from_args(args)
 
-        query_result, content_range = query_with_filters(Kind, Kind.query, range, sort, filter)
+        query_result, content_range = query_with_filters(
+            Kind,
+            Kind.query,
+            range,
+            sort,
+            filter,
+            # quick_search_columns=["name", "short_description_nl", "short_description_en"],
+            quick_search_columns=["short_description_nl", "name", "short_description_en"],
+        )
         # Todo: return items from selected shop/category
         for kind in query_result:
             kind.tags = [

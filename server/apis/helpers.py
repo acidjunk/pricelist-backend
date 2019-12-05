@@ -7,7 +7,7 @@ import boto3
 import structlog
 from database import db
 from flask_restplus import abort
-from sqlalchemy import String, cast
+from sqlalchemy import String, cast, or_
 from sqlalchemy.sql import expression
 
 s3 = boto3.resource(
@@ -126,9 +126,10 @@ def query_with_filters(
                     logger.debug(
                         "Activating multi kolom filter", column=column, quick_search_columns=quick_search_columns
                     )
+                    conditions = []
                     for item in quick_search_columns:
-                        query = query.filter(cast(model.__dict__[item], String).ilike("%" + searchPhrase + "%"))
-
+                        conditions.append(cast(model.__dict__[item], String).ilike("%" + searchPhrase + "%"))
+                    query = query.filter(or_(*conditions))
                 else:
                     query = query.filter(cast(model.__dict__[column], String).ilike("%" + searchPhrase + "%"))
 
