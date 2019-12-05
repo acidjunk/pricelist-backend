@@ -1,17 +1,20 @@
 import base64
-import io
 import os
 from ast import literal_eval
 from typing import Dict, List, Optional
 
+import boto3
 import structlog
 from database import db
-from flask import current_app
 from flask_restplus import abort
-from PIL import Image
 from sqlalchemy import String, cast
 from sqlalchemy.sql import expression
 
+s3 = boto3.resource(
+    "s3",
+    aws_access_key_id=os.getenv("IMAGE_S3_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("IMAGE_S3_SECRET_ACCESS_KEY"),
+)
 logger = structlog.get_logger(__name__)
 
 
@@ -153,15 +156,20 @@ def query_with_filters(
 
 
 def upload_file(blob, file_name):
-    destination = os.path.join(current_app.config.get("DATA_FOLDER", "data"), "medias/")
-    if not os.path.exists(destination):
-        os.makedirs(destination)
     image_mime, image_base64 = blob.split(",")
     image = base64.b64decode(image_base64)
 
-    imagePath = os.path.join(destination, file_name)
-    img = Image.open(io.BytesIO(image))
-    img.save(imagePath, "png")
+    # Todo: make dynamic
+    s3_object = s3.Object("images-prijslijst-info", file_name)
+    resp = s3_object.put(Body=image, ContentType="image/png")
+
+    if resp["ResponseMetadata"]["HTTPStatusCode"] == 200:
+        logger.info("Uploaded file to S3", file_name=file_name)
+
+        # Make the result public
+        object_acl = s3_object.Acl()
+        response = object_acl.put(ACL="public-read")
+        logger.info("Made public", response=response)
 
 
 def name_file(column_name, kind_name, image_name=""):

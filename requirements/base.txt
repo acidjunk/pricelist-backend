@@ -1,3 +1,4 @@
+boto3==1.10.31
 bumpversion==0.5.3
 Flask==1.0.2
 Flask-Admin==1.5.3

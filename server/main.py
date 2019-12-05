@@ -95,6 +95,9 @@ app.config["FRONTEND_URI"] = os.getenv("FRONTEND_URI") if os.getenv("FRONTEND_UR
 # Todo: check if we can fix this without completely disabling it: it's only needed when login request is not via .json
 app.config["WTF_CSRF_ENABLED"] = False
 
+# The S3 Bucket for file storage. Note: IMAGE_S3_ACCESS_KEY_ID and IMAGE_S3_SECRET_ACCESS_KEY are also needed!
+app.config["IMAGE_BUCKET"] = os.getenv("IMAGE_S3_BUCKET") if os.getenv("IMAGE_S3_BUCKET") else "image-prijslijst.info"
+
 # Setup Flask-Security with extended user registration
 security = Security(
     app, user_datastore, register_form=ExtendedRegisterForm, confirm_register_form=ExtendedJSONRegisterForm
