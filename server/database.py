@@ -115,6 +115,7 @@ class Kind(db.Model):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.datetime.utcnow)
     approved_at = Column(DateTime)
+    approved = Column("approved", Boolean(), default=False)
     kind_tags = relationship("Tag", secondary="kinds_to_tags")
     kind_to_tags = relationship("KindToTag")
     kind_flavors = relationship("Flavor", secondary="kinds_to_flavors")
