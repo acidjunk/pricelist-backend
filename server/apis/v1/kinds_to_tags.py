@@ -54,6 +54,18 @@ class KindsToTagsResourceList(Resource):
 
         kind_to_tag = KindToTag(id=str(uuid.uuid4()), kind=kind, tag=tag, amount=api.payload["amount"])
         save(kind_to_tag)
+
+        kind.complete = (
+            True
+            if len(kind.kind_flavors) >= 3
+            and len(kind.kind_tags) + 1 >= 4
+            and kind.image_1
+            and kind.description_nl
+            and kind.description_en
+            else False
+        )
+        save(kind)
+
         return kind_to_tag, 201
 
 

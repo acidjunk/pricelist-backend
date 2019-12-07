@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 import structlog
 from apis.helpers import (
@@ -34,6 +35,7 @@ kind_serializer = api.model(
         "h": fields.Boolean(description="Hybrid?"),
         "i": fields.Boolean(description="Indica?"),
         "s": fields.Boolean(description="Sativa?"),
+        "approved": fields.Boolean(description="Approved?"),
     },
 )
 
@@ -109,7 +111,6 @@ class KindResourceList(Resource):
                 if getattr(kind, f"image_{i}"):
                     kind.images_amount += 1
 
-            kind.complete = True if kind.flavors_amount >= 3 and kind.tags_amount >= 4 and kind.image_1 else False
         return query_result, 200, {"Content-Range": content_range}
 
     @roles_accepted("admin")
@@ -140,7 +141,7 @@ class KindResource(Resource):
         for i in [1, 2, 3, 4, 5, 6]:
             if getattr(item, f"image_{i}"):
                 item.images_amount += 1
-        item.complete = True if item.flavors_amount >= 3 and item.tags_amount >= 4 and item.image_1 else False
+
         return item, 200
 
     @roles_accepted("admin")
@@ -149,5 +150,24 @@ class KindResource(Resource):
     def put(self, id):
         """Edit Kind"""
         item = load(Kind, id)
+        api.payload["modified_at"] = datetime.utcnow()
+        if api.payload.get("approved"):
+            print(api.payload["approved"])
+            print(type(api.payload["approved"]))
+            if api.payload["approved"] and not item.approved:
+                api.payload["approved_at"] = datetime.utcnow()
+            if not api.payload["approved"] and item.approved:
+                api.payload["approved_at"] = None
+
+        api.payload["complete"] = (
+            True
+            if len(item.kind_flavors) >= 3
+            and len(item.kind_tags) >= 4
+            and item.image_1
+            and api.payload.get("description_nl")
+            and api.payload.get("description_en")
+            else False
+        )
+
         item = update(item, api.payload)
         return item, 201

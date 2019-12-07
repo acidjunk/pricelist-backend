@@ -53,6 +53,18 @@ class KindsToFlavorsResourceList(Resource):
 
         kind_to_flavor = KindToFlavor(id=str(uuid.uuid4()), kind=kind, flavor=flavor)
         save(kind_to_flavor)
+
+        kind.complete = (
+            True
+            if len(kind.kind_flavors) + 1 >= 3
+            and len(kind.kind_tags) >= 4
+            and kind.image_1
+            and kind.description_nl
+            and kind.description_en
+            else False
+        )
+        save(kind)
+
         return kind_to_flavor, 201
 
 

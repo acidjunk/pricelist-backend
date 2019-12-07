@@ -1,5 +1,5 @@
-import datetime
 import uuid
+from datetime import datetime
 
 from flask_security import RoleMixin, SQLAlchemySessionUserDatastore, UserMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -42,7 +42,7 @@ class User(db.Model, UserMixin):
     password = Column(String(255))
     active = Column(Boolean())
     fs_uniquifier = Column(String(255))
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
     confirmed_at = Column(DateTime())
     roles = relationship("Role", secondary="roles_users", backref=backref("users", lazy="dynamic"))
 
@@ -112,8 +112,9 @@ class Kind(db.Model):
     h = Column(Boolean(), default=False)
     i = Column(Boolean(), default=False)
     s = Column(Boolean(), default=False)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    modified_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    modified_at = Column(DateTime, default=datetime.utcnow)
+    complete = Column("complete", Boolean(), default=False)
     approved_at = Column(DateTime)
     approved = Column("approved", Boolean(), default=False)
     kind_tags = relationship("Tag", secondary="kinds_to_tags")
@@ -153,7 +154,7 @@ class Order(db.Model):
     order_info = Column(JSON)
     total = Column(Float())
     status = Column(String(), default="pending")
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
 
     shop = db.relationship("Shop", lazy=True)

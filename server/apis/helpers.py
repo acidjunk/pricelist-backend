@@ -45,7 +45,6 @@ def get_sort_from_args(args, default_sort="name"):
             return sort
         except:  # noqa: E722
             logger.warning("Query parameters not parsable", args=args.get(["sort"], "No sort provided"))
-        return range
     sort = [default_sort, "ASC"]  # Default sort
     logger.info("Query parameters set to default sort", sort=sort)
     return sort
@@ -53,13 +52,14 @@ def get_sort_from_args(args, default_sort="name"):
 
 def get_filter_from_args(args, default_filter={}):
     if args["filter"]:
+        print(args["filter"])
         try:
-            filter = literal_eval(args["filter"])
+
+            filter = literal_eval(args["filter"].replace(":true", ":True").replace(":false", ":False"))
             logger.info("Query parameters set to custom filter", filter=filter)
             return filter
         except:  # noqa: E722
             logger.warning("Query parameters not parsable", args=args.get(["filter"], "No filter provided"))
-        return range
     logger.info("Query parameters set to default filter", filter=default_filter)
     return default_filter
 
@@ -110,7 +110,9 @@ def query_with_filters(
             logger.info("Query parameters set to custom filter for column", column=column, searchPhrase=searchPhrase)
 
             if searchPhrase is not None:
-                if column.endswith("_gt"):
+                if type(searchPhrase) == bool:
+                    query = query.filter(model.__dict__[column].is_(searchPhrase))
+                elif column.endswith("_gt"):
                     query = query.filter(model.__dict__[column[:-3]] > searchPhrase)
                 elif column.endswith("_gte"):
                     query = query.filter(model.__dict__[column[:-4]] >= searchPhrase)
