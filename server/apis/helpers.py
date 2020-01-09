@@ -34,7 +34,7 @@ def get_range_from_args(args):
     return range
 
 
-def get_sort_from_args(args, default_sort="name"):
+def get_sort_from_args(args, default_sort="name", default_sort_order="ASC"):
     sort = []
     if args["sort"]:
         try:
@@ -45,7 +45,7 @@ def get_sort_from_args(args, default_sort="name"):
             return sort
         except:  # noqa: E722
             logger.warning("Query parameters not parsable", args=args.get(["sort"], "No sort provided"))
-    sort = [default_sort, "ASC"]  # Default sort
+    sort = [default_sort, default_sort_order]  # Default sort
     logger.info("Query parameters set to default sort", sort=sort)
     return sort
 
