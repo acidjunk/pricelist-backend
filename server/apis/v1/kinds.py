@@ -152,8 +152,6 @@ class KindResource(Resource):
         item = load(Kind, id)
         api.payload["modified_at"] = datetime.utcnow()
         if api.payload.get("approved"):
-            print(api.payload["approved"])
-            print(type(api.payload["approved"]))
             if api.payload["approved"] and not item.approved:
                 api.payload["approved_at"] = datetime.utcnow()
             if not api.payload["approved"] and item.approved:
