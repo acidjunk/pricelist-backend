@@ -131,11 +131,15 @@ class KindResource(Resource):
     def get(self, id):
         """List Kind"""
         item = load(Kind, id)
-        item.tags = [{"id": tag.id, "name": tag.tag.name, "amount": tag.amount} for tag in item.kind_to_tags]
+        item.tags = [
+            {"id": tag.id, "name": tag.tag.name, "amount": tag.amount}
+            for tag in sorted(item.kind_to_tags, key=lambda i: i.amount, reverse=True)
+        ]
+
         item.tags_amount = len(item.tags)
         item.flavors = [
             {"id": flavor.id, "name": flavor.flavor.name, "icon": flavor.flavor.icon, "color": flavor.flavor.color}
-            for flavor in item.kind_to_flavors
+            for flavor in sorted(item.kind_to_flavors, key=lambda i: i.flavor.name)
         ]
         item.flavors_amount = len(item.flavors)
         item.images_amount = 0

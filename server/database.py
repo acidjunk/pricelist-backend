@@ -127,15 +127,17 @@ class Kind(db.Model):
     approved_at = Column(DateTime)
     approved = Column("approved", Boolean(), default=False)
     kind_tags = relationship("Tag", secondary="kinds_to_tags")
-    kind_to_tags = relationship("KindToTag")
+    kind_to_tags = relationship("KindToTag", cascade="save-update, merge, delete")
     kind_flavors = relationship("Flavor", secondary="kinds_to_flavors")
-    kind_to_flavors = relationship("KindToFlavor")
+    kind_to_flavors = relationship("KindToFlavor", cascade="save-update, merge, delete")
     image_1 = Column(String(255), unique=True, index=True)
     image_2 = Column(String(255), unique=True, index=True)
     image_3 = Column(String(255), unique=True, index=True)
     image_4 = Column(String(255), unique=True, index=True)
     image_5 = Column(String(255), unique=True, index=True)
     image_6 = Column(String(255), unique=True, index=True)
+
+    shop_to_price = relationship("ShopToPrice", cascade="save-update, merge, delete")
 
     def __repr__(self):
         return "<Kinds %r, id:%s>" % (self.name, self.id)
