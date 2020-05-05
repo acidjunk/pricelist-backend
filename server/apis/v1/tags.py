@@ -2,6 +2,7 @@ import uuid
 
 import structlog
 from apis.helpers import (
+    delete,
     get_filter_from_args,
     get_range_from_args,
     get_sort_from_args,
@@ -72,3 +73,10 @@ class TagResource(Resource):
         item = load(Tag, id)
         item = update(item, api.payload)
         return item, 201
+
+    @roles_accepted("admin")
+    def delete(self, id):
+        """Edit Tag"""
+        item = load(Tag, id)
+        delete(item)
+        return "", 204
