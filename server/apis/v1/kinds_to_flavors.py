@@ -1,8 +1,8 @@
 import uuid
 
-from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
+from apis.helpers import delete, get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
 from database import Flavor, Kind, KindToFlavor
-from flask_restplus import Namespace, Resource, abort, fields, marshal_with
+from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 
 api = Namespace("kinds-to-flavors", description="Kind to flavor related operations")
@@ -86,3 +86,10 @@ class KindsToFlavorsResource(Resource):
         item = load(KindToFlavor, id)
         item = update(item, api.payload)
         return item, 201
+
+    @roles_accepted("admin")
+    def delete(self, id):
+        """Edit Tag"""
+        item = load(KindToFlavor, id)
+        delete(item)
+        return "", 204

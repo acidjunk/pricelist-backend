@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 import boto3
 import structlog
 from database import db
-from flask_restplus import abort
+from flask_restx import abort
 from sqlalchemy import String, cast, or_
 from sqlalchemy.sql import expression
 
@@ -90,6 +90,15 @@ def update(item, payload):
     except Exception as e:
         abort(500, f"Error: {e}")
     return item
+
+
+def delete(item):
+    try:
+        db.session.delete(item)
+        db.session.commit()
+    except Exception as error:
+        db.session.rollback()
+        abort(400, "DB error: {}".format(str(error)))
 
 
 def query_with_filters(

@@ -1,9 +1,9 @@
 import uuid
 
 import structlog
-from apis.helpers import get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
+from apis.helpers import delete, get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
 from database import Order
-from flask_restplus import Namespace, Resource, fields, marshal_with
+from flask_restx import Namespace, Resource, fields, marshal_with
 from flask_security import roles_accepted
 
 logger = structlog.get_logger(__name__)
@@ -94,3 +94,10 @@ class OrderResource(Resource):
         item = load(Order, id)
         item = update(item, api.payload)
         return item, 201
+
+    @roles_accepted("admin")
+    def delete(self, id):
+        """Edit Tag"""
+        item = load(Order, id)
+        delete(item)
+        return "", 204
