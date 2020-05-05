@@ -1,7 +1,7 @@
 import structlog
 from apis.helpers import get_filter_from_args, get_range_from_args, get_sort_from_args, query_with_filters
 from database import User
-from flask_restplus import Namespace, Resource, fields, marshal_with
+from flask_restx import Namespace, Resource, fields, marshal_with
 from flask_security import roles_accepted
 
 logger = structlog.get_logger(__name__)

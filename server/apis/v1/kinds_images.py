@@ -13,7 +13,7 @@ from apis.helpers import (
 )
 from database import Kind
 from flask import request
-from flask_restplus import Namespace, Resource, fields, marshal_with, reqparse
+from flask_restx import Namespace, Resource, fields, marshal_with, reqparse
 from flask_security import roles_accepted
 from werkzeug.datastructures import FileStorage
 

@@ -62,6 +62,8 @@ class Tag(db.Model):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(60), unique=True, index=True)
 
+    kinds_to_tags = relationship("KindToTag", cascade="save-update, merge, delete")
+
     def __repr__(self):
         return self.name
 
@@ -73,6 +75,8 @@ class Flavor(db.Model):
     icon = Column(String(60), unique=True, index=True)
     color = Column(String(20), default="#000000")
 
+    kinds_to_flavors = relationship("KindToFlavor", cascade="save-update, merge, delete")
+
     def __repr__(self):
         return self.name
 
@@ -82,6 +86,9 @@ class Shop(db.Model):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), unique=True, index=True)
     description = Column(String(255), unique=True)
+
+    shops_to_price = relationship("ShopToPrice", cascade="save-update, merge, delete")
+    shop_to_category = relationship("Category", cascade="save-update, merge, delete")
 
     def __repr__(self):
         return self.name
@@ -95,6 +102,8 @@ class Category(db.Model):
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     shop = db.relationship("Shop", lazy=True)
     order_number = Column(Integer, default=0)
+
+    shops_to_price = relationship("ShopToPrice", cascade="save-update, merge, delete")
 
     def __repr__(self):
         return f"{self.shop.name}: {self.name}"

@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 import boto3
 import structlog
 from database import db
-from flask_restplus import abort
+from flask_restx import abort
 from sqlalchemy import String, cast, or_
 from sqlalchemy.sql import expression
 

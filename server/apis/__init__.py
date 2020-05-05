@@ -1,9 +1,9 @@
-from flask_restplus import Api
+from flask_restx import Api
 
 from .v1.categories import api as categories_ns
 from .v1.flavors import api as flavors_ns
-from .v1.kinds_images import api as kinds_images_ns
 from .v1.kinds import api as kinds_ns
+from .v1.kinds_images import api as kinds_images_ns
 from .v1.kinds_to_flavors import api as kinds_to_flavors_ns
 from .v1.kinds_to_tags import api as kinds_to_tags_ns
 from .v1.orders import api as orders_ns
