@@ -1,9 +1,19 @@
 import uuid
 
-from apis.helpers import delete, get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
+from apis.helpers import (
+    delete,
+    get_filter_from_args,
+    get_range_from_args,
+    get_sort_from_args,
+    load,
+    query_with_filters,
+    save,
+    update,
+)
 from database import Category, Kind, Price, Shop, ShopToPrice
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
+from sqlalchemy.orm import contains_eager, defer
 
 api = Namespace("shops-to-prices", description="Shop to price related operations")
 
@@ -33,17 +43,17 @@ shop_to_price_serializer_with_prices = {
     "category_id": fields.String(description="Category Id"),
     "kind_id": fields.String(required=True, description="Kind Id"),
     "use_half": fields.Boolean(default=True, description="Show the price for 0.5g?"),
-    "half": fields.String(description="Price for half gram"),
+    "half": fields.Float(description="Price for half gram"),
     "use_one": fields.Boolean(default=True, description="Show the price for 1?"),
-    "one": fields.String(description="Price for one gram"),
+    "one": fields.Float(description="Price for one gram"),
     "use_two_five": fields.Boolean(default=True, description="Show the price for 2.5g?"),
-    "two_five": fields.String(description="Price for two and a half gram"),
+    "two_five": fields.Float(description="Price for two and a half gram"),
     "use_five": fields.Boolean(default=True, description="Show the price for 5g?"),
-    "five": fields.String(description="Price for five gram"),
+    "five": fields.Float(description="Price for five gram"),
     "use_joint": fields.Boolean(default=True, description="Show the price for joint?"),
-    "joint": fields.String(description="Price for one joint"),
+    "joint": fields.Float(description="Price for one joint"),
     "use_piece": fields.Boolean(default=True, description="Show the price for one piece?"),
-    "piece": fields.String(description="Price for one item"),
+    "piece": fields.Float(description="Price for one item"),
 }
 
 parser = api.parser()
@@ -55,17 +65,27 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("ShopsToPrices")
 class ShopsToPricesResourceList(Resource):
-    @marshal_with(shop_to_price_serializer)
+    @marshal_with(shop_to_price_serializer_with_prices)
     @api.doc(parser=parser)
     def get(self):
         """List prices for a shop"""
         args = parser.parse_args()
         range = get_range_from_args(args)
         sort = get_sort_from_args(args, "id")
+        filter = get_filter_from_args(args)
 
-        query_result, content_range = query_with_filters(
-            ShopToPrice, ShopToPrice.query.filter_by(shop_id=id), range, sort, ""
-        )
+        query = ShopToPrice.query.join(ShopToPrice.price).options(contains_eager(ShopToPrice.price), defer("price_id"))
+
+        query_result, content_range = query_with_filters(ShopToPrice, query, range, sort, filter)
+
+        for result in query_result:
+            result.half = result.price.half if result.price.half else None
+            result.one = result.price.one if result.price.one else None
+            result.two_five = result.price.two_five if result.price.two_five else None
+            result.five = result.price.five if result.price.five else None
+            result.joint = result.price.joint if result.price.joint else None
+            result.piece = result.price.piece if result.price.piece else None
+
         return query_result, 200, {"Content-Range": content_range}
 
     @roles_accepted("admin")

@@ -1,6 +1,15 @@
 import uuid
 
-from apis.helpers import delete, get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
+from apis.helpers import (
+    delete,
+    get_filter_from_args,
+    get_range_from_args,
+    get_sort_from_args,
+    load,
+    query_with_filters,
+    save,
+    update,
+)
 from database import Kind, KindToTag, Tag
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
@@ -33,8 +42,9 @@ class KindsToTagsResourceList(Resource):
         args = parser.parse_args()
         range = get_range_from_args(args)
         sort = get_sort_from_args(args, "amount")
+        filter = get_filter_from_args(args)
 
-        query_result, content_range = query_with_filters(KindToTag, KindToTag.query, range, sort, "")
+        query_result, content_range = query_with_filters(KindToTag, KindToTag.query, range, sort, filter)
         return query_result, 200, {"Content-Range": content_range}
 
     @roles_accepted("admin")
