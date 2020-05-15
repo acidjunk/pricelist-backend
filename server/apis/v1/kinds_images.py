@@ -105,13 +105,7 @@ class KindImageResource(Resource):
 
         if kind_update:
             kind_update["complete"] = (
-                True
-                if len(item.kind_flavors) >= 3
-                and len(item.kind_tags) >= 4
-                and data.get("image_1")
-                and item.description_nl
-                and item.description_en
-                else False
+                True if data.get("image_1") and item.description_nl and item.description_en else False
             )
             kind_update["modified_at"] = datetime.utcnow()
             item = update(item, kind_update)

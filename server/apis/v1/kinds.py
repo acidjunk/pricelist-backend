@@ -163,13 +163,7 @@ class KindResource(Resource):
                 api.payload["approved_at"] = None
 
         api.payload["complete"] = (
-            True
-            if len(item.kind_flavors) >= 3
-            and len(item.kind_tags) >= 4
-            and item.image_1
-            and api.payload.get("description_nl")
-            and api.payload.get("description_en")
-            else False
+            True if item.image_1 and api.payload.get("description_nl") and api.payload.get("description_en") else False
         )
 
         item = update(item, api.payload)
