@@ -28,6 +28,8 @@ kind_serializer = api.model(
     {
         "id": fields.String(),
         "name": fields.String(required=True, description="Product name"),
+        "strain1_id": fields.String(description="Strain 1"),
+        "strain2_id": fields.String(description="Strain 2"),
         "short_description_nl": fields.String(description="NL Description as shown in the price list"),
         "description_nl": fields.String(description="EN Description as shown in the detail view"),
         "short_description_en": fields.String(description="NL Description as shown in the price list"),
@@ -47,6 +49,10 @@ kind_serializer_with_relations = {
     "description_nl": fields.String(description="EN Description as shown in the detail view"),
     "short_description_en": fields.String(description="NL Description as shown in the price list"),
     "description_en": fields.String(description="EN Description as shown in the detail view"),
+    "strain1_id": fields.String(description="Strain 1"),
+    "strain1_name": fields.String,
+    "strain2_id": fields.String(description="Strain 2"),
+    "strain2_name": fields.String,
     "c": fields.Boolean(description="CBD?"),
     "h": fields.Boolean(description="Hybrid?"),
     "i": fields.Boolean(description="Indica?"),
@@ -97,6 +103,8 @@ class KindResourceList(Resource):
         )
         # Todo: return items from selected shop/category
         for kind in query_result:
+            kind.strain1_name = kind.strain1
+            kind.strain2_name = kind.strain2
             kind.tags = [
                 {"id": tag.id, "name": f"{tag.tag.name}: {tag.amount}", "amount": tag.amount}
                 for tag in kind.kind_to_tags
@@ -131,6 +139,9 @@ class KindResource(Resource):
     def get(self, id):
         """List Kind"""
         item = load(Kind, id)
+
+        item.strain1_name = item.strain1
+        item.strain2_name = item.strain2
         item.tags = [
             {"id": tag.id, "name": tag.tag.name, "amount": tag.amount}
             for tag in sorted(item.kind_to_tags, key=lambda i: i.amount, reverse=True)

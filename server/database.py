@@ -117,6 +117,8 @@ class Kind(db.Model):
     description_nl = Column(String())
     short_description_en = Column(String())
     description_en = Column(String())
+    strain1_id = Column("strain1_id", UUID(as_uuid=True), ForeignKey("strains.id"), index=True)
+    strain2_id = Column("strain2_id", UUID(as_uuid=True), ForeignKey("strains.id"), index=True)
     c = Column(Boolean(), default=False)
     h = Column(Boolean(), default=False)
     i = Column(Boolean(), default=False)
@@ -138,6 +140,8 @@ class Kind(db.Model):
     image_6 = Column(String(255), unique=True, index=True)
 
     shop_to_price = relationship("ShopToPrice", cascade="save-update, merge, delete")
+    strain1 = db.relationship("Strain", foreign_keys=[strain1_id], lazy=True)
+    strain2 = db.relationship("Strain", foreign_keys=[strain2_id], lazy=True)
 
     def __repr__(self):
         return "<Kinds %r, id:%s>" % (self.name, self.id)
@@ -216,6 +220,15 @@ class ShopToPrice(db.Model):
     use_five = Column("use_five", Boolean(), default=True)
     use_joint = Column("use_joint", Boolean(), default=True)
     use_piece = Column("use_piece", Boolean(), default=True)
+
+
+class Strain(db.Model):
+    __tablename__ = "strains"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String(255), unique=True, index=True)
+
+    def __repr__(self):
+        return self.name
 
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
