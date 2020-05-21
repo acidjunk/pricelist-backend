@@ -225,8 +225,10 @@ class ShopToPrice(db.Model):
 class Strain(db.Model):
     __tablename__ = "strains"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    name_nl = Column(String(255), unique=True, index=True)
-    name_en = Column(String(255), unique=True, index=True)
+    name = Column(String(255), unique=True, index=True)
+
+    def __repr__(self):
+        return self.name
 
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)

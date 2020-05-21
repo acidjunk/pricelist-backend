@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e27057ac5920
+Revision ID: f6124f577467
 Revises: 5f89f26268da
-Create Date: 2020-05-20 14:11:17.345075
+Create Date: 2020-05-20 16:01:30.048657
 
 """
 import sqlalchemy as sa
@@ -10,7 +10,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "e27057ac5920"
+revision = "f6124f577467"
 down_revision = "5f89f26268da"
 branch_labels = None
 depends_on = None
@@ -21,19 +21,17 @@ def upgrade():
     op.create_table(
         "strains",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("name_nl", sa.String(length=255), nullable=True),
-        sa.Column("name_en", sa.String(length=255), nullable=True),
+        sa.Column("name", sa.String(length=255), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_strains_id"), "strains", ["id"], unique=False)
-    op.create_index(op.f("ix_strains_name_en"), "strains", ["name_en"], unique=True)
-    op.create_index(op.f("ix_strains_name_nl"), "strains", ["name_nl"], unique=True)
+    op.create_index(op.f("ix_strains_name"), "strains", ["name"], unique=True)
     op.add_column("kinds", sa.Column("strain1_id", postgresql.UUID(as_uuid=True), nullable=True))
     op.add_column("kinds", sa.Column("strain2_id", postgresql.UUID(as_uuid=True), nullable=True))
     op.create_index(op.f("ix_kinds_strain1_id"), "kinds", ["strain1_id"], unique=False)
     op.create_index(op.f("ix_kinds_strain2_id"), "kinds", ["strain2_id"], unique=False)
-    op.create_foreign_key(None, "kinds", "strains", ["strain2_id"], ["id"])
     op.create_foreign_key(None, "kinds", "strains", ["strain1_id"], ["id"])
+    op.create_foreign_key(None, "kinds", "strains", ["strain2_id"], ["id"])
     # ### end Alembic commands ###
 
 
@@ -45,8 +43,7 @@ def downgrade():
     op.drop_index(op.f("ix_kinds_strain1_id"), table_name="kinds")
     op.drop_column("kinds", "strain2_id")
     op.drop_column("kinds", "strain1_id")
-    op.drop_index(op.f("ix_strains_name_nl"), table_name="strains")
-    op.drop_index(op.f("ix_strains_name_en"), table_name="strains")
+    op.drop_index(op.f("ix_strains_name"), table_name="strains")
     op.drop_index(op.f("ix_strains_id"), table_name="strains")
     op.drop_table("strains")
     # ### end Alembic commands ###

@@ -20,12 +20,7 @@ logger = structlog.get_logger(__name__)
 api = Namespace("strains", description="Strain related operations")
 
 strain_serializer = api.model(
-    "Strain",
-    {
-        "id": fields.String(),
-        "name_nl": fields.String(required=True, description="Unique EN strain name"),
-        "name_en": fields.String(required=True, description="Unique EN strain name"),
-    },
+    "Strain", {"id": fields.String(), "name": fields.String(required=True, description="Unique strain name")}
 )
 
 parser = api.parser()
@@ -44,7 +39,7 @@ class StrainResourceList(Resource):
         """List Strains"""
         args = parser.parse_args()
         range = get_range_from_args(args)
-        sort = get_sort_from_args(args, "name_nl")
+        sort = get_sort_from_args(args)
         filter = get_filter_from_args(args)
 
         query_result, content_range = query_with_filters(Strain, Strain.query, range, sort, filter)
