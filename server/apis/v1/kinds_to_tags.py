@@ -33,7 +33,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 
 
 @api.route("/")
-@api.doc("Create tags")
+@api.doc("KindToTag relations")
 class KindsToTagsResourceList(Resource):
     @marshal_with(kind_to_tag_serializer)
     @api.doc(parser=parser)
@@ -100,7 +100,7 @@ class KindsToTagsResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Edit Tag"""
+        """Delete KindToTag"""
         item = load(KindToTag, id)
         delete(item)
         return "", 204

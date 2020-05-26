@@ -76,7 +76,7 @@ class TagResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Edit Tag"""
+        """Delete Tag"""
         item = load(Tag, id)
         delete(item)
         return "", 204

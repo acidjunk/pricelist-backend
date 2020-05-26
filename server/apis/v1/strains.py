@@ -76,7 +76,7 @@ class StrainResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Edit Strain"""
+        """Delete Strain"""
         item = load(Strain, id)
         delete(item)
         return "", 204

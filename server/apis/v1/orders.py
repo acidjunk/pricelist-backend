@@ -69,7 +69,7 @@ class OrderResourceList(Resource):
     @api.expect(order_serializer)
     @api.marshal_with(order_serializer)
     def post(self):
-        """New Shops"""
+        """New Order"""
         order = Order(id=str(uuid.uuid4()), **api.payload)
         save(order)
         return order, 201
@@ -97,7 +97,7 @@ class OrderResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Edit Tag"""
+        """Delete Order"""
         item = load(Order, id)
         delete(item)
         return "", 204

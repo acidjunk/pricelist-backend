@@ -67,7 +67,7 @@ class CategoryResourceList(Resource):
     @api.expect(category_serializer)
     @api.marshal_with(category_serializer)
     def post(self):
-        """New Shops"""
+        """New Category"""
         category = Category(id=str(uuid.uuid4()), **api.payload)
         save(category)
         return category, 201
@@ -96,7 +96,7 @@ class CategoryResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Edit Tag"""
+        """Delete Category"""
         item = load(Category, id)
         delete(item)
         return "", 204

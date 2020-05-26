@@ -83,7 +83,7 @@ class FlavorResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Edit Tag"""
+        """Delete Flavor"""
         item = load(Flavor, id)
         delete(item)
         return "", 204

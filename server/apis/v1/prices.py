@@ -64,7 +64,7 @@ class PriceResourceList(Resource):
     @api.expect(price_serializer)
     @api.marshal_with(price_serializer)
     def post(self):
-        """New Shops"""
+        """New Prices"""
         price = Price(id=str(uuid.uuid4()), **api.payload)
         save(price)
         return price, 201
@@ -90,7 +90,7 @@ class PriceResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Edit Tag"""
+        """Delete Price"""
         item = load(Price, id)
         delete(item)
         return "", 204

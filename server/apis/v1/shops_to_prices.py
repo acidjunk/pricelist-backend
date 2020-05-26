@@ -157,7 +157,7 @@ class ShopToPriceResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Edit Tag"""
+        """Delete ShopToPrice"""
         item = load(ShopToPrice, id)
         delete(item)
         return "", 204
