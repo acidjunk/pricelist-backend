@@ -65,7 +65,6 @@ class OrderResourceList(Resource):
 
         return query_result, 200, {"Content-Range": content_range}
 
-    @roles_accepted("admin")
     @api.expect(order_serializer)
     @api.marshal_with(order_serializer)
     def post(self):
@@ -78,7 +77,7 @@ class OrderResourceList(Resource):
 @api.route("/<id>")
 @api.doc("Order detail operations.")
 class OrderResource(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(order_serializer_with_shop_names)
     def get(self, id):
         """List Order"""
@@ -86,7 +85,7 @@ class OrderResource(Resource):
         item.shop_name = item.shop.name
         return item, 200
 
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @api.expect(order_serializer)
     @api.marshal_with(order_serializer)
     def put(self, id):

@@ -6,7 +6,7 @@ from database import Price, Tag, db
 def test_price(app, price_1):
     # test with query
     price_1 = Price.query.get(price_1.id)
-    assert price_1.internal_product_id == "1"
+    assert price_1.internal_product_id == "01"
 
 
 def test_isolation(app):

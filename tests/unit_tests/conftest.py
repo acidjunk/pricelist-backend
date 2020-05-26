@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import make_url
 
-from server.database import Category, Flavor, Kind, Price, Role, Shop, Tag, User, db, user_datastore
+from server.database import Category, Flavor, Kind, Price, Role, Shop, ShopToPrice, Tag, User, db, user_datastore
 
 ADMIN_EMAIL = "admin@example.com"
 ADMIN_PASSWORD = "Adminnetje"
@@ -145,18 +145,16 @@ def shop(shop_unconfirmed):
 
 
 @pytest.fixture
-def teacher_logged_in(teacher):
-    user = User.query.filter(User.email == SHOP_EMAIL).first()
-    # Todo: actually login/handle cookie
-    # db.session.commit()
-    return user
+def price_1():
+    fixture = Price(id=str(uuid.uuid4()), internal_product_id="01", half="5.50", one="10.0", five="45.0", joint="4.50")
+    db.session.add(fixture)
+    db.session.commit()
+    return fixture
 
 
 @pytest.fixture
-def price_1():
-    fixture = Price(
-        id=str(uuid.uuid4()), internal_product_id="1", half=4.5, one=8, two_five=19, five=36, joint=4.0, piece=None
-    )
+def price_2():
+    fixture = Price(id=str(uuid.uuid4()), internal_product_id="02", one="7.50", five="35.0", joint="4.00")
     db.session.add(fixture)
     db.session.commit()
     return fixture
@@ -256,6 +254,44 @@ def kind_1():
     # db.session.add(record)
     db.session.commit()
     return fixture
+
+
+@pytest.fixture
+def kind_2():
+    fixture_id = str(uuid.uuid4())
+    fixture = Kind(
+        id=fixture_id,
+        name="Sativa",
+        c=False,
+        h=False,
+        i=False,
+        s=True,
+        short_description_nl="Vet goeie indica",
+        description_nl="Deze knalt er echt in. Alleen voor ervaren gebruikers.",
+        short_description_en="Really good indica",
+        description_en="This one will blow your mind. Only for experienced users.",
+    )
+    db.session.add(fixture)
+    # record = KindToTag(id=str(uuid.uuid4()), kind_id=fixture_id, tag=tag_1, amount=90)
+    # db.session.add(record)
+    # record = KindToTag(id=str(uuid.uuid4()), kind_id=fixture_id, tag_id=tag_2, amount=60)
+    # db.session.add(record)
+    # record = KindToFlavor(id=str(uuid.uuid4()), kind_id=fixture_id, flavor_id=flavor_1.id)
+    # db.session.add(record)
+    # record = KindToFlavor(id=str(uuid.uuid4()), kind_id=fixture_id, flavor_id=flavor_2.id)
+    # db.session.add(record)
+    db.session.commit()
+    return fixture
+
+
+@pytest.fixture
+def shop_with_products(shop_1, kind_1, kind_2, price_1, price_2):
+    shop_to_price1 = ShopToPrice(price_id=price_1.id, shop_id=shop_1.id, kind_id=kind_1.id)
+    shop_to_price2 = ShopToPrice(price_id=price_2.id, shop_id=shop_1.id, kind_id=kind_2.id)
+    db.session.add(shop_to_price1)
+    db.session.add(shop_to_price2)
+    db.session.commit()
+    return shop_1
 
 
 # @pytest.fixture

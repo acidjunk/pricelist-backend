@@ -5,7 +5,7 @@ from database import Kind, Tag, db
 
 
 def test_add_tag_to_kind(client):
-    # somehow check_quick_token() loses the request in test setup
+    # somehow check_quick_token() looses the request in test setup
     with mock.patch("flask_security.decorators._check_token", return_value=True):
         with mock.patch("flask_principal.Permission.can", return_value=True):
             kind_id = str(uuid.uuid4())
