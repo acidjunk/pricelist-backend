@@ -11,4 +11,6 @@ If you want to see what you can build with it, grab a free account on: https://w
 
 # Handy stuff
 
-```PYTHONPATH=. PASSWORD=yourpass EMAIL=admin@example.com python client_examples/login.py
+```bash
+PYTHONPATH=. PASSWORD=yourpass EMAIL=admin@example.com python client_examples/login.py
+```
