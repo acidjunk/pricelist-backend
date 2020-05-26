@@ -23,8 +23,8 @@ api = Namespace("orders", description="Order related operations")
 order_info_marshaller = {
     "description": fields.String,
     "price": fields.Float,
-    "kind_id": fields.Integer,
-    "kind_name": fields.Integer,
+    "kind_id": fields.String,
+    "kind_name": fields.String,
     "internal_product_id": fields.String,
     "quantity": fields.Integer,
 }
@@ -34,8 +34,8 @@ order_info_serializer = api.model(
     {
         "description": fields.String,
         "price": fields.Float,
-        "kind_id": fields.Integer,
-        "kind_name": fields.Integer,
+        "kind_id": fields.String,
+        "kind_name": fields.String,
         "internal_product_id": fields.String,
         "quantity": fields.Integer,
     },
