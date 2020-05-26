@@ -38,6 +38,6 @@ def test_price_endpoint_without_auth(client):
     assert response.status_code == 403
 
 
-def test_users_endpoint_without_auth(client, member):
+def test_users_endpoint_without_auth(client, customer):
     response = client.get("/v1/users", follow_redirects=True)
     assert response.status_code == 403

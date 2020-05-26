@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import uuid
 from contextlib import closing
@@ -7,14 +8,14 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import make_url
 
-from server.database import Category, Flavor, Kind, Price, Role, Shop, ShopToPrice, Tag, User, db, user_datastore
+from server.database import Category, Flavor, Kind, Order, Price, Role, Shop, ShopToPrice, Tag, User, db, user_datastore
 
 ADMIN_EMAIL = "admin@example.com"
 ADMIN_PASSWORD = "Adminnetje"
-MEMBER_EMAIL = "member@example.com"
-MEMBER_PASSWORD = "Membertje"
-SHOP_EMAIL = "shop@example.com"
-SHOP_PASSWORD = "Shopje"
+CUSTOMER_EMAIL = "customer@example.com"
+CUSTOMER_PASSWORD = "Customertje"
+EMPLOYEE_EMAIL = "employee@example.com"
+EMPLOYEE_PASSWORD = "Employeetje"
 
 
 @pytest.fixture(scope="session")
@@ -82,22 +83,22 @@ def app(database):
 
 @pytest.fixture
 def user_roles():
-    roles = ["member", "shop", "admin"]
+    roles = ["customer", "employee", "admin"]
     [db.session.add(Role(id=str(uuid.uuid4()), name=role)) for role in roles]
     db.session.commit()
 
 
 @pytest.fixture
-def member_unconfirmed(user_roles):
-    user = user_datastore.create_user(username="member", password=MEMBER_PASSWORD, email=MEMBER_EMAIL)
-    user_datastore.add_role_to_user(user, "member")
+def customer_unconfirmed(user_roles):
+    user = user_datastore.create_user(username="customer", password=CUSTOMER_PASSWORD, email=CUSTOMER_EMAIL)
+    user_datastore.add_role_to_user(user, "customer")
     db.session.commit()
     return user
 
 
 @pytest.fixture
-def member(member_unconfirmed):
-    user = User.query.filter(User.email == MEMBER_EMAIL).first()
+def customer(customer_unconfirmed):
+    user = User.query.filter(User.email == CUSTOMER_EMAIL).first()
     user.confirmed_at = datetime.datetime.utcnow()
     db.session.commit()
     return user
@@ -121,24 +122,24 @@ def admin_logged_in(admin):
 
 
 @pytest.fixture
-def member_logged_in(member):
-    user = User.query.filter(User.email == MEMBER_EMAIL).first()
+def customer_logged_in(customer):
+    user = User.query.filter(User.email == CUSTOMER_EMAIL).first()
     # Todo: actually login/handle cookie
     db.session.commit()
     return user
 
 
 @pytest.fixture
-def shop_unconfirmed(user_roles):
-    user = user_datastore.create_user(username="shop", password=SHOP_PASSWORD, email=SHOP_EMAIL)
-    user_datastore.add_role_to_user(user, "shop")
+def employee_unconfirmed(user_roles):
+    user = user_datastore.create_user(username="employee", password=EMPLOYEE_PASSWORD, email=EMPLOYEE_EMAIL)
+    user_datastore.add_role_to_user(user, "employee")
     db.session.commit()
     return user
 
 
 @pytest.fixture
-def shop(shop_unconfirmed):
-    user = User.query.filter(User.email == SHOP_EMAIL).first()
+def employee(employee_unconfirmed):
+    user = User.query.filter(User.email == EMPLOYEE_EMAIL).first()
     user.confirmed_at = datetime.datetime.utcnow()
     db.session.commit()
     return user
@@ -162,7 +163,7 @@ def price_2():
 
 @pytest.fixture
 def shop_1():
-    fixture = Shop(id=str(uuid.uuid4()), name="Mississippi", description="Shop descciption")
+    fixture = Shop(id=str(uuid.uuid4()), name="Mississippi", description="Shop description")
     db.session.add(fixture)
     db.session.commit()
     return fixture
@@ -170,7 +171,7 @@ def shop_1():
 
 @pytest.fixture
 def shop_2():
-    fixture = Shop(id=str(uuid.uuid4()), name="Head Shop", description="Shop descciption 2")
+    fixture = Shop(id=str(uuid.uuid4()), name="Head Shop", description="Shop description 2")
     db.session.add(fixture)
     db.session.commit()
     return fixture
@@ -178,7 +179,7 @@ def shop_2():
 
 @pytest.fixture
 def category_1(shop_1):
-    fixture = Category(id=str(uuid.uuid4()), name="Category 1", description="Category descciption", shop_id=shop_1.id)
+    fixture = Category(id=str(uuid.uuid4()), name="Category 1", description="Category description", shop_id=shop_1.id)
     db.session.add(fixture)
     db.session.commit()
     return fixture
@@ -186,7 +187,7 @@ def category_1(shop_1):
 
 @pytest.fixture
 def category_2(shop_1):
-    fixture = Category(id=str(uuid.uuid4()), name="Category 2", description="Category descciption 2", shop_id=shop_1.id)
+    fixture = Category(id=str(uuid.uuid4()), name="Category 2", description="Category description 2", shop_id=shop_1.id)
     db.session.add(fixture)
     db.session.commit()
     return fixture
@@ -290,6 +291,48 @@ def shop_with_products(shop_1, kind_1, kind_2, price_1, price_2):
     shop_to_price2 = ShopToPrice(price_id=price_2.id, shop_id=shop_1.id, kind_id=kind_2.id)
     db.session.add(shop_to_price1)
     db.session.add(shop_to_price2)
+    db.session.commit()
+    return shop_1
+
+
+@pytest.fixture
+def shop_with_order(shop_with_products, kind_1, kind_2, price_1, price_2):
+    items = [
+        {
+            "description": "1 gram",
+            "price": price_1.one,
+            "kind_id": str(kind_1.id),
+            "kind_name": kind_1.name,
+            "internal_product_id": "01",
+            "quantity": 2,
+        },
+        {
+            "description": "1 joint",
+            "price": price_2.joint,
+            "kind_id": str(kind_2.id),
+            "kind_name": kind_2.name,
+            "internal_product_id": "02",
+            "quantity": 1,
+        },
+    ]
+    order = Order(
+        id=str(uuid.uuid4()),
+        shop_id=str(shop_with_products.id),
+        order_info=json.dumps(items),
+        total=24.0,
+        customer_order_id=1,
+    )
+    db.session.add(order)
+    order = Order(
+        id=str(uuid.uuid4()),
+        shop_id=str(shop_with_products.id),
+        order_info=json.dumps(items),
+        total=24.0,
+        customer_order_id=2,
+        completed_at=datetime.datetime.utcnow(),
+        status="complete",
+    )
+    db.session.add(order)
     db.session.commit()
     return shop_1
 

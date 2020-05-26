@@ -1,9 +1,19 @@
+import datetime
 import uuid
 
 import structlog
-from apis.helpers import delete, get_range_from_args, get_sort_from_args, load, query_with_filters, save, update
-from database import Order
-from flask_restx import Namespace, Resource, fields, marshal_with
+from apis.helpers import (
+    delete,
+    get_filter_from_args,
+    get_range_from_args,
+    get_sort_from_args,
+    load,
+    query_with_filters,
+    save,
+    update,
+)
+from database import Order, Shop
+from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 
 logger = structlog.get_logger(__name__)
@@ -25,9 +35,9 @@ order_serializer = api.model(
         "id": fields.String(required=True),
         "shop_id": fields.String(required=True, description="Shop Id"),
         # Todo: use fields from improviser to marshall
-        # "order_info": fields.Nested(order_info_marshaller),
-        "order_info": fields.String(),
-        "total": fields.String(required=True, description="Total"),
+        "order_info": fields.Nested(order_info_marshaller),
+        # "order_info": fields.String(),
+        "total": fields.Float(required=True, description="Total"),
     },
 )
 
@@ -36,10 +46,13 @@ order_serializer_with_shop_names = {
     "shop_id": fields.String(required=True, description="Shop Id"),
     "shop_name": fields.String(description="Shop Name"),
     # Todo: use fields from improviser to marshall
-    # "order_info": fields.Nested(order_info_marshaller),
-    "order_info": fields.String(),
+    "order_info": fields.Nested(order_info_marshaller),
+    # "order_info": fields.String(),
     "total": fields.String(required=True, description="Total"),
 }
+
+order_response_marshaller = {"id": fields.String, "customer_order_id": fields.Integer, "total": fields.Float}
+
 
 parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
@@ -54,22 +67,31 @@ class OrderResourceList(Resource):
     @marshal_with(order_serializer_with_shop_names)
     @api.doc(parser=parser)
     def get(self):
-        """List Categories"""
+        """List Orders"""
         args = parser.parse_args()
         range = get_range_from_args(args)
-        sort = get_sort_from_args(args)
+        sort = get_sort_from_args(args, "created_at", default_sort_order="DESC")
+        filter = get_filter_from_args(args)
 
-        query_result, content_range = query_with_filters(Order, Order.query, range, sort, "")
-        for result in query_result:
-            result.shop_name = result.shop.name
+        query_result, content_range = query_with_filters(Order, Order.query, range, sort, filter)
 
         return query_result, 200, {"Content-Range": content_range}
 
     @api.expect(order_serializer)
-    @api.marshal_with(order_serializer)
+    @api.marshal_with(order_response_marshaller)
     def post(self):
         """New Order"""
-        order = Order(id=str(uuid.uuid4()), **api.payload)
+        payload = api.payload
+        shop_id = payload.get("shop_id")
+        if not shop_id:
+            abort(400, "shop_id not in payload")
+
+        shop = load(Shop, str(shop_id))
+        if not shop:
+            return {}, 600
+        payload["customer_order_id"] = Order.query.filter_by(shop_id=str(shop.id)).count() + 1
+        # Todo: recalculate total and use it as a checksum for the payload
+        order = Order(id=str(uuid.uuid4()), **payload)
         save(order)
         return order, 201
 
@@ -91,6 +113,8 @@ class OrderResource(Resource):
     def put(self, id):
         """Edit Order"""
         item = load(Order, id)
+        if api.payload.get("status") and api.payload["status"] == "completed" and not item.completed_at:
+            item.completed_at = datetime.datetime.utcnow()
         item = update(item, api.payload)
         return item, 201
 
@@ -99,4 +123,17 @@ class OrderResource(Resource):
         """Delete Order"""
         item = load(Order, id)
         delete(item)
+        return "", 204
+
+    @api.expect(order_serializer)
+    def patch(self, id):
+        item = load(Order, id)
+        if (
+            "complete" not in item.status
+            and api.payload.get("status")
+            and api.payload["status"] == "complete"
+            and not item.completed_at
+        ):
+            item.completed_at = datetime.datetime.utcnow()
+        _ = update(item, api.payload)
         return "", 204

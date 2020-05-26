@@ -1,40 +1,40 @@
-from tests.unit_tests.conftest import MEMBER_EMAIL, MEMBER_PASSWORD, SHOP_EMAIL, SHOP_PASSWORD
+from tests.unit_tests.conftest import CUSTOMER_EMAIL, CUSTOMER_PASSWORD, EMPLOYEE_EMAIL, EMPLOYEE_PASSWORD
 from tests.unit_tests.helpers import login, logout
 
 
-def test_member_login(client, member):
+def test_customer_login(client, customer):
     """Make sure login and logout works."""
-    response = login(client, MEMBER_EMAIL, MEMBER_PASSWORD)
+    response = login(client, CUSTOMER_EMAIL, CUSTOMER_PASSWORD)
     # assert response.json["response"]["user"]["authentication_token"]
     assert response.status_code == 200
     logout(client)
 
-    response = login(client, MEMBER_EMAIL, "Wrong password")
+    response = login(client, CUSTOMER_EMAIL, "Wrong password")
     assert response.status_code == 400
     assert response.json["response"]["errors"]["password"] == ["Invalid password"]
 
 
-def test_unconfirmed_member_login(client, member_unconfirmed):
+def test_unconfirmed_customer_login(client, customer_unconfirmed):
     """Make sure login shows confirmation error."""
-    response = login(client, MEMBER_EMAIL, MEMBER_PASSWORD)
+    response = login(client, CUSTOMER_EMAIL, CUSTOMER_PASSWORD)
     assert response.json["response"]["errors"]["email"][0] == "Email requires confirmation."
     assert response.status_code == 400
 
 
-def test_shop_login(client, shop):
+def test_employee_login(client, employee):
     """Make sure login and logout works."""
-    response = login(client, SHOP_EMAIL, SHOP_PASSWORD)
+    response = login(client, EMPLOYEE_EMAIL, EMPLOYEE_PASSWORD)
     assert response.status_code == 200
     # assert response.json["response"]["user"]["authentication_token"]
     logout(client)
 
-    response = login(client, SHOP_EMAIL, "Wrong password")
+    response = login(client, EMPLOYEE_EMAIL, "Wrong password")
     assert response.status_code == 400
     assert response.json["response"]["errors"]["password"] == ["Invalid password"]
 
 
-def test_unconfirmed_shop_login(client, shop_unconfirmed):
+def test_unconfirmed_employee_login(client, employee_unconfirmed):
     """Make sure login shows confirmation error."""
-    response = login(client, SHOP_EMAIL, SHOP_PASSWORD)
+    response = login(client, EMPLOYEE_EMAIL, EMPLOYEE_PASSWORD)
     assert response.json["response"]["errors"]["email"][0] == "Email requires confirmation."
     assert response.status_code == 400

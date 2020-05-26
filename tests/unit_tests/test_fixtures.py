@@ -31,5 +31,5 @@ def test_isolation2(app):
     assert tag_db.name == "Test tag 3"
 
 
-def test_user(app, member):
-    assert "member" == member.roles[0]
+def test_user(app, customer):
+    assert "customer" == customer.roles[0]
