@@ -138,7 +138,7 @@ class ShopResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Edit Tag"""
+        """Delete Shop"""
         item = load(Shop, id)
         delete(item)
         return "", 204

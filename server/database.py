@@ -165,6 +165,8 @@ class Price(db.Model):
 class Order(db.Model):
     __tablename__ = "orders"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    customer_order_id = Column(Integer)
+    notes = Column(String, nullable=True)
     shop_id = Column(UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     order_info = Column(JSON)
     total = Column(Float())

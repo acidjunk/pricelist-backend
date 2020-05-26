@@ -32,7 +32,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 
 
 @api.route("/")
-@api.doc("KindsToFlavos")
+@api.doc("KindToFlavor relations")
 class KindsToFlavorsResourceList(Resource):
     @marshal_with(kind_to_flavor_serializer)
     @api.doc(parser=parser)
