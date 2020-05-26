@@ -29,15 +29,29 @@ order_info_marshaller = {
     "quantity": fields.Integer,
 }
 
+order_info_serializer = api.model(
+    "OrderInfo",
+    {
+        "description": fields.String,
+        "price": fields.Float,
+        "kind_id": fields.Integer,
+        "kind_name": fields.Integer,
+        "internal_product_id": fields.String,
+        "quantity": fields.Integer,
+    },
+)
+
+
 order_serializer = api.model(
     "Order",
     {
         "id": fields.String(required=True),
         "shop_id": fields.String(required=True, description="Shop Id"),
         # Todo: use fields from improviser to marshall
-        "order_info": fields.Nested(order_info_marshaller),
+        "order_info": fields.Nested(order_info_serializer),
         # "order_info": fields.String(),
         "total": fields.Float(required=True, description="Total"),
+        "customer_order_id": fields.Integer,
     },
 )
 
@@ -49,9 +63,12 @@ order_serializer_with_shop_names = {
     "order_info": fields.Nested(order_info_marshaller),
     # "order_info": fields.String(),
     "total": fields.String(required=True, description="Total"),
+    "customer_order_id": fields.Integer,
 }
 
-order_response_marshaller = {"id": fields.String, "customer_order_id": fields.Integer, "total": fields.Float}
+order_response_marshaller = api.model(
+    "ShortOrderResponse", {"id": fields.String, "customer_order_id": fields.Integer, "total": fields.Float}
+)
 
 
 parser = api.parser()
@@ -82,6 +99,8 @@ class OrderResourceList(Resource):
     def post(self):
         """New Order"""
         payload = api.payload
+        if payload.get("customer_order_id"):
+            del payload["customer_order_id"]
         shop_id = payload.get("shop_id")
         if not shop_id:
             abort(400, "shop_id not in payload")
@@ -123,6 +142,7 @@ class OrderResource(Resource):
         delete(item)
         return "", 204
 
+    @roles_accepted("admin", "employee")
     @api.expect(order_serializer)
     def patch(self, id):
         item = load(Order, id)
