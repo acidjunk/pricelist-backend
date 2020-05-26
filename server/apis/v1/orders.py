@@ -86,9 +86,7 @@ class OrderResourceList(Resource):
         if not shop_id:
             abort(400, "shop_id not in payload")
 
-        shop = load(Shop, str(shop_id))
-        if not shop:
-            return {}, 600
+        shop = load(Shop, str(shop_id))  # also handles 404 when shop can't be found
         payload["customer_order_id"] = Order.query.filter_by(shop_id=str(shop.id)).count() + 1
         # Todo: recalculate total and use it as a checksum for the payload
         order = Order(id=str(uuid.uuid4()), **payload)

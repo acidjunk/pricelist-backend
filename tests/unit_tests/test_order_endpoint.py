@@ -4,7 +4,6 @@ from database import Order
 
 
 def test_order_list(client, shop_with_order):
-    # somehow check_quick_token() looses the request in test setup
     with mock.patch("flask_security.decorators._check_token", return_value=True):
         with mock.patch("flask_principal.Permission.can", return_value=True):
 
