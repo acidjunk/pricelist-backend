@@ -64,6 +64,9 @@ order_serializer_with_shop_names = {
     # "order_info": fields.String(),
     "total": fields.String(required=True, description="Total"),
     "customer_order_id": fields.Integer,
+    "status": fields.String,
+    "created_at": fields.DateTime,
+    "completed_at": fields.DateTime,
 }
 
 order_response_marshaller = api.model(
