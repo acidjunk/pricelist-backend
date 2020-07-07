@@ -3,7 +3,16 @@ from unittest import mock
 from database import Order
 
 
-def test_order_list(client, shop_with_order):
+def test_order_list(client, shop_with_orders):
+    with mock.patch("flask_security.decorators._check_token", return_value=True):
+        with mock.patch("flask_principal.Permission.can", return_value=True):
+
+            response = client.get(f"/v1/orders", follow_redirects=True)
+            assert response.status_code == 200
+            assert len(response.json) == 2
+
+
+def test_mixed_order_list(client, shop_with_mixed_orders):
     with mock.patch("flask_security.decorators._check_token", return_value=True):
         with mock.patch("flask_principal.Permission.can", return_value=True):
 
@@ -60,6 +69,62 @@ def test_create_order(client, price_1, price_2, kind_1, kind_2, shop_with_produc
     assert order.customer_order_id == 2
 
 
+def test_create_imixed_order(client, price_1, price_2, price_3, product_1, kind_1, kind_2, shop_with_products):
+    items = [
+        {
+            "description": "1 gram",
+            "price": price_1.one,
+            "kind_id": str(kind_1.id),
+            "kind_name": kind_1.name,
+            "internal_product_id": "01",
+            "quantity": 2,
+        },
+        {
+            "description": "1 joint",
+            "price": price_2.joint,
+            "kind_id": str(kind_2.id),
+            "kind_name": kind_2.name,
+            "internal_product_id": "02",
+            "quantity": 1,
+        },
+        {
+            "description": "1 cola",
+            "price": price_3.piece,
+            "kind_id": str(product_1.id),
+            "kind_name": product_1.name,
+            "internal_product_id": "03",
+            "quantity": 1,
+        },
+    ]
+    data = {
+        "shop_id": str(shop_with_products.id),
+        "total": 26.50,  # 2x 1 gram of 10,- + 1 joint of 4 + 1 cola (2.50)
+        "notes": "Nice one",
+        "order_info": items,
+    }
+    response = client.post(f"/v1/orders", json=data, follow_redirects=True)
+    assert response.status_code == 201
+    assert response.json["customer_order_id"] == 1
+    assert response.json["total"] == 26.50
+
+    order = Order.query.filter_by(customer_order_id=1).first()
+    assert order.shop_id == shop_with_products.id
+    assert order.total == 26.50
+    assert order.customer_order_id == 1
+    assert order.notes == "Nice one"
+    assert order.status == "pending"
+    assert order.order_info == items
+
+    # test with a second order to also cover the automatic increase of `customer_order_id`
+    response = client.post(f"/v1/orders", json=data, follow_redirects=True)
+    assert response.json["customer_order_id"] == 2
+    assert response.json["total"] == 26.50
+
+    assert response.status_code == 201
+    order = Order.query.filter_by(customer_order_id=2).first()
+    assert order.customer_order_id == 2
+
+
 def test_create_order_validation(client, price_1, price_2, kind_1, kind_2, shop_with_products):
     items = [
         {
@@ -97,7 +162,7 @@ def test_create_order_validation(client, price_1, price_2, kind_1, kind_2, shop_
     # Todo: test checksum functionality (totals should match with quantity in items)
 
 
-def test_patch_order_to_complete(client, shop_with_order):
+def test_patch_order_to_complete(client, shop_with_orders):
     # Get the uncompleted order_id from the fixture:
     order = Order.query.filter_by(status="pending").first()
 

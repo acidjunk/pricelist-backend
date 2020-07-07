@@ -8,7 +8,25 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import make_url
 
-from server.database import Category, Flavor, Kind, Order, Price, Role, Shop, ShopToPrice, Tag, User, db, user_datastore
+from server.database import (
+    Category,
+    Flavor,
+    Kind,
+    KindToFlavor,
+    KindToStrain,
+    KindToTag,
+    Order,
+    Price,
+    Product,
+    Role,
+    Shop,
+    ShopToPrice,
+    Strain,
+    Tag,
+    User,
+    db,
+    user_datastore,
+)
 
 ADMIN_EMAIL = "admin@example.com"
 ADMIN_PASSWORD = "Adminnetje"
@@ -162,6 +180,14 @@ def price_2():
 
 
 @pytest.fixture
+def price_3():
+    fixture = Price(id=str(uuid.uuid4()), internal_product_id="03", piece="2.50")
+    db.session.add(fixture)
+    db.session.commit()
+    return fixture
+
+
+@pytest.fixture
 def shop_1():
     fixture = Shop(id=str(uuid.uuid4()), name="Mississippi", description="Shop description")
     db.session.add(fixture)
@@ -226,7 +252,23 @@ def flavor_2():
 
 
 @pytest.fixture
-def kind_1():
+def strain_1():
+    fixture = Strain(id=str(uuid.uuid4()), name="Haze")
+    db.session.add(fixture)
+    db.session.commit()
+    return fixture
+
+
+@pytest.fixture
+def strain_2():
+    fixture = Strain(id=str(uuid.uuid4()), name="Kush")
+    db.session.add(fixture)
+    db.session.commit()
+    return fixture
+
+
+@pytest.fixture
+def kind_1(tag_1, flavor_1, strain_1):
     fixture_id = str(uuid.uuid4())
     fixture = Kind(
         id=fixture_id,
@@ -245,14 +287,12 @@ def kind_1():
         "profile and produces intense psychotropic effects that new consumers should be wary of.",
     )
     db.session.add(fixture)
-    # record = KindToTag(id=str(uuid.uuid4()), kind_id=fixture_id, tag=tag_1, amount=90)
-    # db.session.add(record)
-    # record = KindToTag(id=str(uuid.uuid4()), kind_id=fixture_id, tag_id=tag_2, amount=60)
-    # db.session.add(record)
-    # record = KindToFlavor(id=str(uuid.uuid4()), kind_id=fixture_id, flavor_id=flavor_1.id)
-    # db.session.add(record)
-    # record = KindToFlavor(id=str(uuid.uuid4()), kind_id=fixture_id, flavor_id=flavor_2.id)
-    # db.session.add(record)
+    record = KindToTag(id=str(uuid.uuid4()), kind_id=fixture_id, tag=tag_1, amount=90)
+    db.session.add(record)
+    record = KindToFlavor(id=str(uuid.uuid4()), kind_id=fixture_id, flavor_id=flavor_1.id)
+    db.session.add(record)
+    record = KindToStrain(id=str(uuid.uuid4()), kind_id=fixture_id, strain_id=strain_1.id)
+    db.session.add(record)
     db.session.commit()
     return fixture
 
@@ -273,30 +313,40 @@ def kind_2():
         description_en="This one will blow your mind. Only for experienced users.",
     )
     db.session.add(fixture)
-    # record = KindToTag(id=str(uuid.uuid4()), kind_id=fixture_id, tag=tag_1, amount=90)
-    # db.session.add(record)
-    # record = KindToTag(id=str(uuid.uuid4()), kind_id=fixture_id, tag_id=tag_2, amount=60)
-    # db.session.add(record)
-    # record = KindToFlavor(id=str(uuid.uuid4()), kind_id=fixture_id, flavor_id=flavor_1.id)
-    # db.session.add(record)
-    # record = KindToFlavor(id=str(uuid.uuid4()), kind_id=fixture_id, flavor_id=flavor_2.id)
-    # db.session.add(record)
     db.session.commit()
     return fixture
 
 
 @pytest.fixture
-def shop_with_products(shop_1, kind_1, kind_2, price_1, price_2):
+def product_1():
+    fixture_id = str(uuid.uuid4())
+    fixture = Product(
+        id=fixture_id,
+        name="Cola",
+        short_description_nl="Cola Light",
+        description_nl="Deze knalt er echt in. Alleen voor echte caffeine addicts.",
+        short_description_en="Cola Light",
+        description_en="This one will blow your mind. Only for Real caffeine addicts.",
+    )
+    db.session.add(fixture)
+    db.session.commit()
+    return fixture
+
+
+@pytest.fixture
+def shop_with_products(shop_1, kind_1, kind_2, price_1, price_2, price_3, product_1):
     shop_to_price1 = ShopToPrice(price_id=price_1.id, shop_id=shop_1.id, kind_id=kind_1.id)
     shop_to_price2 = ShopToPrice(price_id=price_2.id, shop_id=shop_1.id, kind_id=kind_2.id)
+    shop_to_price3 = ShopToPrice(price_id=price_3.id, shop_id=shop_1.id, product_id=product_1.id)
     db.session.add(shop_to_price1)
     db.session.add(shop_to_price2)
+    db.session.add(shop_to_price3)
     db.session.commit()
     return shop_1
 
 
 @pytest.fixture
-def shop_with_order(shop_with_products, kind_1, kind_2, price_1, price_2):
+def shop_with_orders(shop_with_products, kind_1, kind_2, price_1, price_2):
     items = [
         {
             "description": "1 gram",
@@ -337,42 +387,51 @@ def shop_with_order(shop_with_products, kind_1, kind_2, price_1, price_2):
     return shop_1
 
 
-# @pytest.fixture
-# def exercise_1(teacher, riff, riff_multi_chord, riff_without_chord_info, riff_without_chord):
-#     exercise_id = str(uuid.uuid4())
-#     riff_exercise = RiffExercise(
-#         id=exercise_id,
-#         name="Exercise 1",
-#         description="Some description",
-#         root_key="c",
-#         instrument_key="c",
-#         is_public=True,
-#         is_copyable=True,
-#         # starts=3,
-#         created_by=teacher.id
-#     )
-#     db.session.add(riff_exercise)
-#     record = RiffExerciseItem(id=str(uuid.uuid4()), riff_id=riff.id, riff_exercise_id=exercise_id,
-#                               number_of_bars=riff.number_of_bars, chord_info=riff.chord_info,
-#                               pitch="c", octave=0, order_number=0)
-#     db.session.add(record)
-#     db.session.commit()
-#     return riff_exercise
-#
-#
-# @pytest.fixture
-# def exercise_2(teacher, riff, riff_multi_chord, riff_without_chord_info, riff_without_chord):
-#     riff_exercise = RiffExercise(
-#         id=str(uuid.uuid4()),
-#         name="Exercise 1",
-#         description="Some description",
-#         root_key="c",
-#         instrument_key="c",
-#         is_public=True,
-#         is_copyable=True,
-#         # starts=3,
-#         created_by=teacher.id
-#     )
-#     db.session.add(riff_exercise)
-#     db.session.commit()
-#     return riff_exercise
+@pytest.fixture
+def shop_with_mixed_orders(shop_with_products, kind_1, kind_2, price_1, price_2, price_3, product_1):
+    items = [
+        {
+            "description": "1 gram",
+            "price": price_1.one,
+            "kind_id": str(kind_1.id),
+            "kind_name": kind_1.name,
+            "internal_product_id": "01",
+            "quantity": 2,
+        },
+        {
+            "description": "1 joint",
+            "price": price_2.joint,
+            "kind_id": str(kind_2.id),
+            "kind_name": kind_2.name,
+            "internal_product_id": "02",
+            "quantity": 1,
+        },
+        {
+            "description": "1 cola",
+            "price": price_3.piece,
+            "price_id": str(product_1.id),
+            "price_name": product_1.name,
+            "internal_product_id": "03",
+            "quantity": 1,
+        },
+    ]
+    order = Order(
+        id=str(uuid.uuid4()),
+        shop_id=str(shop_with_products.id),
+        order_info=json.dumps(items),
+        total=26.50,
+        customer_order_id=1,
+    )
+    db.session.add(order)
+    order = Order(
+        id=str(uuid.uuid4()),
+        shop_id=str(shop_with_products.id),
+        order_info=json.dumps(items),
+        total=26.50,
+        customer_order_id=2,
+        completed_at=datetime.datetime.utcnow(),
+        status="complete",
+    )
+    db.session.add(order)
+    db.session.commit()
+    return shop_1
