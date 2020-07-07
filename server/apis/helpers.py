@@ -188,12 +188,12 @@ def upload_file(blob, file_name):
         logger.info("Made public", response=response)
 
 
-def name_file(column_name, kind_name, image_name=""):
+def name_file(column_name, record_name, image_name=""):
     _, _, image_number = column_name.rpartition("_")[0:3]
     current_name = image_name
     extension = "png"  # todo: make it dynamic e.g. get it from mime-type, extra arg for this function?
     if not current_name:
-        name = "".join([c if c.isalnum() else "-" for c in kind_name])
+        name = "".join([c if c.isalnum() else "-" for c in record_name])
         name = f"{name}-{image_number}-1".lower()
     else:
         name, _ = current_name.split(".")

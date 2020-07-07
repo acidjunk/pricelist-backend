@@ -11,7 +11,7 @@ from apis.helpers import (
     update,
     upload_file,
 )
-from database import Kind
+from database import Product
 from flask import request
 from flask_restx import Namespace, Resource, fields, marshal_with, reqparse
 from flask_security import roles_accepted
@@ -19,10 +19,10 @@ from werkzeug.datastructures import FileStorage
 
 logger = structlog.get_logger(__name__)
 
-api = Namespace("kinds-images", description="Product-kind image related operations")
+api = Namespace("products-images", description="Product-product image related operations")
 
 image_serializer = api.model(
-    "Kind",
+    "Product",
     {
         "id": fields.String(required=True),
         "name": fields.String(required=True),
@@ -51,21 +51,21 @@ file_upload.add_argument("image_6", type=FileStorage, location="files", help="im
 
 
 @api.route("/")
-@api.doc("Show all product kind images.")
-class KindImageResourceList(Resource):
+@api.doc("Show all product product images.")
+class ProductImageResourceList(Resource):
     @roles_accepted("admin")
     @marshal_with(image_serializer)
     @api.doc(parser=parser)
     def get(self):
-        """List all product kind images"""
+        """List all product product images"""
         args = parser.parse_args()
         range = get_range_from_args(args)
         sort = get_sort_from_args(args)
         filter = get_filter_from_args(args)
 
         query_result, content_range = query_with_filters(
-            Kind,
-            Kind.query,
+            Product,
+            Product.query,
             range,
             sort,
             filter,
@@ -77,12 +77,12 @@ class KindImageResourceList(Resource):
 
 @api.route("/<id>")
 @api.doc("Image detail operations.")
-class KindImageResource(Resource):
+class ProductImageResource(Resource):
     @roles_accepted("admin")
     @marshal_with(image_serializer)
     def get(self, id):
         """List Image"""
-        item = load(Kind, id)
+        item = load(Product, id)
         return item, 200
 
     @api.expect(file_upload)
@@ -90,24 +90,24 @@ class KindImageResource(Resource):
     def put(self, id):
         args = file_upload.parse_args()
         logger.warning("Ignoring files via args! (using JSON body)", args=args)
-        item = load(Kind, id)
+        item = load(Product, id)
         # todo: raise 404 o abort
 
         data = request.get_json()
 
-        kind_update = {}
+        product_update = {}
         image_cols = ["image_1", "image_2", "image_3", "image_4", "image_5", "image_6"]
         for image_col in image_cols:
             if data.get(image_col) and type(data[image_col]) == dict:
                 name = name_file(image_col, item.name, getattr(item, image_col))
                 upload_file(data[image_col]["src"], name)  # todo: use mime-type in first part of
-                kind_update[image_col] = name
+                product_update[image_col] = name
 
-        if kind_update:
-            kind_update["complete"] = (
+        if product_update:
+            product_update["complete"] = (
                 True if data.get("image_1") and item.description_nl and item.description_en else False
             )
-            kind_update["modified_at"] = datetime.utcnow()
-            item = update(item, kind_update)
+            product_update["modified_at"] = datetime.utcnow()
+            item = update(item, product_update)
 
         return item, 201
