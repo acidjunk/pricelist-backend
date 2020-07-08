@@ -79,12 +79,12 @@ class ShopsToPricesResourceList(Resource):
         query_result, content_range = query_with_filters(ShopToPrice, query, range, sort, filter)
 
         for result in query_result:
-            result.half = result.price.half if result.price.half else None
-            result.one = result.price.one if result.price.one else None
-            result.two_five = result.price.two_five if result.price.two_five else None
-            result.five = result.price.five if result.price.five else None
-            result.joint = result.price.joint if result.price.joint else None
-            result.piece = result.price.piece if result.price.piece else None
+            result.half = result.price.half if result.price.half and result.use_half else None
+            result.one = result.price.one if result.price.one and result.use_one else None
+            result.two_five = result.price.two_five if result.price.two_five and result.use_two_five else None
+            result.five = result.price.five if result.price.five and result.use_five else None
+            result.joint = result.price.joint if result.price.joint and result.use_joint else None
+            result.piece = result.price.piece if result.price.piece and result.use_piece else None
 
         return query_result, 200, {"Content-Range": content_range}
 
@@ -137,12 +137,12 @@ class ShopToPriceResource(Resource):
         """List ShopToPrice"""
         item = load(ShopToPrice, id)
         price = Price.query.filter(Price.id == item.price_id).first()
-        item.half = price.half if price.half else "N/A"
-        item.one = price.one if price.one else "N/A"
-        item.two_five = price.two_five if price.two_five else "N/A"
-        item.five = price.five if price.five else "N/A"
-        item.joint = price.joint if price.joint else "N/A"
-        item.piece = price.piece if price.piece else "N/A"
+        item.half = price.half if price.half else None
+        item.one = price.one if price.one else None
+        item.two_five = price.two_five if price.two_five else None
+        item.five = price.five if price.five else None
+        item.joint = price.joint if price.joint else None
+        item.piece = price.piece if price.piece else None
 
         return item, 200
 
