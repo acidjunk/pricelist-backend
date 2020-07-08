@@ -117,8 +117,6 @@ class Kind(db.Model):
     description_nl = Column(String())
     short_description_en = Column(String())
     description_en = Column(String())
-    strain1_id = Column("strain1_id", UUID(as_uuid=True), ForeignKey("strains.id"), index=True)
-    strain2_id = Column("strain2_id", UUID(as_uuid=True), ForeignKey("strains.id"), index=True)
     c = Column(Boolean(), default=False)
     h = Column(Boolean(), default=False)
     i = Column(Boolean(), default=False)
@@ -128,6 +126,8 @@ class Kind(db.Model):
     complete = Column("complete", Boolean(), default=False)
     approved_at = Column(DateTime)
     approved = Column("approved", Boolean(), default=False)
+    approved_by = Column("approved_by", UUID(as_uuid=True), ForeignKey("user.id"), nullable=True)
+    disapproved_reason = Column(String())
     kind_tags = relationship("Tag", secondary="kinds_to_tags")
     kind_to_tags = relationship("KindToTag", cascade="save-update, merge, delete")
     kind_flavors = relationship("Flavor", secondary="kinds_to_flavors")
@@ -140,8 +140,9 @@ class Kind(db.Model):
     image_6 = Column(String(255), unique=True, index=True)
 
     shop_to_price = relationship("ShopToPrice", cascade="save-update, merge, delete")
-    strain1 = db.relationship("Strain", foreign_keys=[strain1_id], lazy=True)
-    strain2 = db.relationship("Strain", foreign_keys=[strain2_id], lazy=True)
+
+    kind_strains = relationship("Strain", secondary="kinds_to_strains")
+    kind_to_strains = relationship("KindToStrain", cascade="save-update, merge, delete")
 
     def __repr__(self):
         return "<Kinds %r, id:%s>" % (self.name, self.id)
@@ -204,6 +205,43 @@ class KindToFlavor(db.Model):
         return f"{self.flavor.name}: {self.kind.name}"
 
 
+class KindToStrain(db.Model):
+    __tablename__ = "kinds_to_strains"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    kind_id = Column("kind_id", UUID(as_uuid=True), ForeignKey("kinds.id"), index=True)
+    strain_id = Column("strain_id", UUID(as_uuid=True), ForeignKey("strains.id"), index=True)
+    kind = db.relationship("Kind", lazy=True)
+    strain = db.relationship("Strain", lazy=True)
+
+    def __repr__(self):
+        return f"{self.strain.name}: {self.kind.name}"
+
+
+class Product(db.Model):
+    __tablename__ = "products"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String(255), unique=True, index=True)
+    short_description_nl = Column(String())
+    description_nl = Column(String())
+    short_description_en = Column(String())
+    description_en = Column(String())
+    created_at = Column(DateTime, default=datetime.utcnow)
+    modified_at = Column(DateTime, default=datetime.utcnow)
+    complete = Column("complete", Boolean(), default=False)
+    approved_at = Column(DateTime)
+    approved = Column("approved", Boolean(), default=False)
+    approved_by = Column("approved_by", UUID(as_uuid=True), ForeignKey("user.id"), nullable=True)
+    disapproved_reason = Column(String())
+    image_1 = Column(String(255), unique=True, index=True)
+    image_2 = Column(String(255), unique=True, index=True)
+    image_3 = Column(String(255), unique=True, index=True)
+    image_4 = Column(String(255), unique=True, index=True)
+    image_5 = Column(String(255), unique=True, index=True)
+    image_6 = Column(String(255), unique=True, index=True)
+
+    shop_to_price = relationship("ShopToPrice", cascade="save-update, merge, delete")
+
+
 class ShopToPrice(db.Model):
     __tablename__ = "shops_to_price"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -212,8 +250,10 @@ class ShopToPrice(db.Model):
     shop = db.relationship("Shop", lazy=True)
     category_id = Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id"), nullable=True, index=True)
     category = db.relationship("Category", lazy=True)
-    kind_id = Column("kind_id", UUID(as_uuid=True), ForeignKey("kinds.id"), index=True)
+    kind_id = Column("kind_id", UUID(as_uuid=True), ForeignKey("kinds.id"), index=True, nullable=True)
     kind = db.relationship("Kind", lazy=True)
+    product_id = Column("product_id", UUID(as_uuid=True), ForeignKey("products.id"), index=True, nullable=True)
+    product = db.relationship("Product", lazy=True)
     price_id = Column("price_id", UUID(as_uuid=True), ForeignKey("prices.id"), index=True)
     price = db.relationship("Price", lazy=True)
     use_half = Column("use_half", Boolean(), default=True)

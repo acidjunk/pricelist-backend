@@ -12,19 +12,19 @@ from apis.helpers import (
     save,
     update,
 )
-from database import Kind
+from database import Product
 from flask_restx import Namespace, Resource, fields, marshal_with
 from flask_security import roles_accepted
 
 logger = structlog.get_logger(__name__)
 
-api = Namespace("kinds", description="Kind related operations")
+api = Namespace("products", description="Product related operations")
 
 tag_fields = {"id": fields.String, "name": fields.String, "amount": fields.Integer}
 flavor_fields = {"id": fields.String, "name": fields.String, "icon": fields.String, "color": fields.String}
 
-kind_serializer = api.model(
-    "Kind",
+product_serializer = api.model(
+    "Product",
     {
         "id": fields.String(),
         "name": fields.String(required=True, description="Product name"),
@@ -32,31 +32,17 @@ kind_serializer = api.model(
         "description_nl": fields.String(description="EN Description as shown in the detail view"),
         "short_description_en": fields.String(description="NL Description as shown in the price list"),
         "description_en": fields.String(description="EN Description as shown in the detail view"),
-        "c": fields.Boolean(description="CBD?"),
-        "h": fields.Boolean(description="Hybrid?"),
-        "i": fields.Boolean(description="Indica?"),
-        "s": fields.Boolean(description="Sativa?"),
         "approved": fields.Boolean(description="Approved?"),
     },
 )
 
-kind_serializer_with_relations = {
+product_serializer_with_relations = {
     "id": fields.String(),
     "name": fields.String(required=True, description="Product name"),
     "short_description_nl": fields.String(description="NL Description as shown in the price list"),
     "description_nl": fields.String(description="EN Description as shown in the detail view"),
     "short_description_en": fields.String(description="NL Description as shown in the price list"),
     "description_en": fields.String(description="EN Description as shown in the detail view"),
-    "c": fields.Boolean(description="CBD?"),
-    "h": fields.Boolean(description="Hybrid?"),
-    "i": fields.Boolean(description="Indica?"),
-    "s": fields.Boolean(description="Sativa?"),
-    "tags": fields.Nested(tag_fields),
-    "tags_amount": fields.Integer("Number of tags"),
-    "flavors": fields.Nested(flavor_fields),
-    "flavors_amount": fields.Integer("Number of flavors"),
-    "strains": fields.Nested(tag_fields),
-    "strains_amount": fields.Integer("Number of strains"),
     "images_amount": fields.Integer("Number of images"),
     "image_1": fields.String(required=True, description="File Name 1"),
     "image_2": fields.String(required=True, description="File Name 2"),
@@ -78,82 +64,51 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 
 
 @api.route("/")
-@api.doc("Show all kinds.")
-class KindResourceList(Resource):
-    @marshal_with(kind_serializer_with_relations)
+@api.doc("Show all products.")
+class ProductResourceList(Resource):
+    @marshal_with(product_serializer_with_relations)
     @api.doc(parser=parser)
     def get(self):
-        """List (Product)Kinds"""
+        """List Products"""
         args = parser.parse_args()
         range = get_range_from_args(args)
         sort = get_sort_from_args(args)
         filter = get_filter_from_args(args)
 
         query_result, content_range = query_with_filters(
-            Kind,
-            Kind.query,
+            Product,
+            Product.query,
             range,
             sort,
             filter,
             quick_search_columns=["name", "short_description_nl", "short_description_en"],
         )
-        # Todo: return items from selected shop/category
-        for kind in query_result:
-            kind.tags = [
-                {"id": tag.id, "name": f"{tag.tag.name}: {tag.amount}", "amount": tag.amount}
-                for tag in kind.kind_to_tags
-            ]
-            kind.tags_amount = len(kind.tags)
-            kind.flavors = [
-                {"id": flavor.id, "name": flavor.flavor.name, "icon": flavor.flavor.icon, "color": flavor.flavor.color}
-                for flavor in kind.kind_to_flavors
-            ]
-            kind.flavors_amount = len(kind.flavors)
-            kind.strains = [{"id": strain.id, "name": f"{strain.strain.name}"} for strain in kind.kind_to_strains]
-            kind.strains_amount = len(kind.strains)
-            kind.images_amount = 0
+
+        for product in query_result:
+            product.images_amount = 0
             for i in [1, 2, 3, 4, 5, 6]:
-                if getattr(kind, f"image_{i}"):
-                    kind.images_amount += 1
+                if getattr(product, f"image_{i}"):
+                    product.images_amount += 1
 
         return query_result, 200, {"Content-Range": content_range}
 
     @roles_accepted("admin")
-    @api.expect(kind_serializer)
-    @api.marshal_with(kind_serializer)
+    @api.expect(product_serializer)
+    @api.marshal_with(product_serializer)
     def post(self):
         """New Shops"""
-        kind = Kind(id=str(uuid.uuid4()), **api.payload)
-        save(kind)
-        return kind, 201
+        product = Product(id=str(uuid.uuid4()), **api.payload)
+        save(product)
+        return product, 201
 
 
 @api.route("/<id>")
-@api.doc("Kind detail operations.")
-class KindResource(Resource):
-    @marshal_with(kind_serializer_with_relations)
+@api.doc("Product detail operations.")
+class ProductResource(Resource):
+    @marshal_with(product_serializer_with_relations)
     def get(self, id):
-        """List Kind"""
-        item = load(Kind, id)
-
-        item.tags = [
-            {"id": tag.id, "name": tag.tag.name, "amount": tag.amount}
-            for tag in sorted(item.kind_to_tags, key=lambda i: i.amount, reverse=True)
-        ]
-        item.tags_amount = len(item.tags)
-
-        item.flavors = [
-            {"id": flavor.id, "name": flavor.flavor.name, "icon": flavor.flavor.icon, "color": flavor.flavor.color}
-            for flavor in sorted(item.kind_to_flavors, key=lambda i: i.flavor.name)
-        ]
-        item.flavors_amount = len(item.flavors)
-
-        item.strains = [
-            {"id": strain.id, "name": strain.strain.name}
-            for strain in sorted(item.kind_to_strains, key=lambda i: i.strain.name)
-        ]
-        item.strains_amount = len(item.strains)
-
+        """List Product"""
+        item = load(Product, id)
         item.images_amount = 0
         for i in [1, 2, 3, 4, 5, 6]:
             if getattr(item, f"image_{i}"):
@@ -162,11 +117,11 @@ class KindResource(Resource):
         return item, 200
 
     @roles_accepted("admin")
-    @api.expect(kind_serializer)
-    @api.marshal_with(kind_serializer)
+    @api.expect(product_serializer)
+    @api.marshal_with(product_serializer)
     def put(self, id):
-        """Edit Kind"""
-        item = load(Kind, id)
+        """Edit Product"""
+        item = load(Product, id)
         api.payload["modified_at"] = datetime.utcnow()
         if api.payload.get("approved"):
             if api.payload["approved"] and not item.approved:
@@ -183,7 +138,7 @@ class KindResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Kind Delete """
-        item = load(Kind, id)
+        """Product Delete """
+        item = load(Product, id)
         delete(item)
         return "", 204
