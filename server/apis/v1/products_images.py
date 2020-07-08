@@ -51,7 +51,7 @@ file_upload.add_argument("image_6", type=FileStorage, location="files", help="im
 
 
 @api.route("/")
-@api.doc("Show all product product images.")
+@api.doc("Show all product images.")
 class ProductImageResourceList(Resource):
     @roles_accepted("admin")
     @marshal_with(image_serializer)
