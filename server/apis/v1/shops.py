@@ -19,16 +19,24 @@ logger = structlog.get_logger(__name__)
 
 api = Namespace("shops", description="Shop related operations")
 
+strain_fields = {"name": fields.String}
+
+
 price_fields = {
     "id": fields.String,
-    "internal_product_id": fields.String,
+    "internal_product_id": fields.Integer,
     "active": fields.Boolean,
     "category_id": fields.String,
     "category_name": fields.String,
     "kind_id": fields.String,
+    "kind_strains": fields.Nested(strain_fields),
     "kind_name": fields.String,
     "kind_short_description_nl": fields.String,
     "kind_short_description_en": fields.String,
+    "product_id": fields.String,
+    "product_name": fields.String,
+    "product_short_description_nl": fields.String,
+    "product_short_description_en": fields.String,
     "kind_c": fields.Boolean,
     "kind_h": fields.Boolean,
     "kind_i": fields.Boolean,
@@ -104,18 +112,23 @@ class ShopResource(Resource):
         item.prices = [
             {
                 "id": pr.id,
+                "internal_product_id": pr.price.internal_product_id,
                 "active": pr.active,
                 "category_id": pr.category_id,
                 "category_name": pr.category.name,
                 "kind_id": pr.kind_id,
-                "kind_name": pr.kind.name,
-                "kind_short_description_nl": pr.kind.short_description_nl,
-                "kind_short_description_en": pr.kind.short_description_en,
-                "kind_c": pr.kind.c,
-                "kind_h": pr.kind.h,
-                "kind_i": pr.kind.i,
-                "kind_s": pr.kind.s,
-                "internal_product_id": pr.price.internal_product_id,
+                "kind_name": pr.kind.name if pr.kind_id else None,
+                "kind_strains": [strain.strain for strain in pr.kind.kind_to_strains] if pr.kind_id else [],
+                "kind_short_description_nl": pr.kind.short_description_nl if pr.kind_id else None,
+                "kind_short_description_en": pr.kind.short_description_en if pr.kind_id else None,
+                "kind_c": pr.kind.c if pr.kind_id else None,
+                "kind_h": pr.kind.h if pr.kind_id else None,
+                "kind_i": pr.kind.i if pr.kind_id else None,
+                "kind_s": pr.kind.s if pr.kind_id else None,
+                "product_id": pr.product_id,
+                "product_name": pr.product.name if pr.product_id else None,
+                "product_short_description_nl": pr.product.short_description_nl if pr.product_id else None,
+                "product_short_description_en": pr.product.short_description_en if pr.product_id else None,
                 "half": pr.price.half if pr.use_half else None,
                 "one": pr.price.one if pr.use_one else None,
                 "two_five": pr.price.two_five if pr.use_two_five else None,

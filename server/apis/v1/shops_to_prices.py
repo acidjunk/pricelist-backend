@@ -10,7 +10,7 @@ from apis.helpers import (
     save,
     update,
 )
-from database import Category, Kind, Price, Shop, ShopToPrice
+from database import Category, Kind, Price, Product, Shop, ShopToPrice
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 from sqlalchemy.orm import contains_eager, defer
@@ -26,6 +26,7 @@ shop_to_price_serializer = api.model(
         "shop_id": fields.String(required=True, description="Shop Id"),
         "category_id": fields.String(description="Category Id"),
         "kind_id": fields.String(required=True, description="Kind Id"),
+        "product_id": fields.String(required=True, description="Product Id"),
         "use_half": fields.Boolean(default=True, description="Use the price for 0.5g?"),
         "use_one": fields.Boolean(default=True, description="Use the price for 1?"),
         "use_two_five": fields.Boolean(default=True, description="Use the price for 2.5g?"),
@@ -42,6 +43,7 @@ shop_to_price_serializer_with_prices = {
     "shop_id": fields.String(required=True, description="Shop Id"),
     "category_id": fields.String(description="Category Id"),
     "kind_id": fields.String(required=True, description="Kind Id"),
+    "product_id": fields.String(required=True, description="Product Id"),
     "use_half": fields.Boolean(default=True, description="Show the price for 0.5g?"),
     "half": fields.Float(description="Price for half gram"),
     "use_one": fields.Boolean(default=True, description="Show the price for 1?"),
@@ -95,25 +97,48 @@ class ShopsToPricesResourceList(Resource):
         """Add new price rules to Shops"""
         price = Price.query.filter(Price.id == api.payload["price_id"]).first()
         shop = Shop.query.filter(Shop.id == api.payload["shop_id"]).first()
-        kind = Kind.query.filter(Kind.id == api.payload["kind_id"]).first()
+        kind = Kind.query.filter(Kind.id == api.payload["kind_id"]).first() if api.payload.get("kind_id") else None
+        product = (
+            Product.query.filter(Product.id == api.payload["product_id"]).first()
+            if api.payload.get("product_id")
+            else None
+        )
         category = None
         if api.payload.get("category_id"):
             category = Category.query.filter(Category.id == api.payload["category_id"]).first()
 
-        if not price or not shop or not kind:
-            abort(400, "Price or shop or kind not found")
+        if not price or not shop:
+            abort(400, "Price or Shop not found")
 
-        check_query = (
-            ShopToPrice.query.filter_by(shop_id=shop.id).filter_by(price_id=price.id).filter_by(kind_id=kind.id).all()
-        )
-        if len(check_query) > 0:
-            abort(409, "Relation already exists")
+        if (product and kind) or not product and not kind:
+            abort(400, "One Cannabis or one Horeca product has to be provided")
+
+        if kind:
+            check_query = (
+                ShopToPrice.query.filter_by(shop_id=shop.id)
+                .filter_by(price_id=price.id)
+                .filter_by(kind_id=kind.id)
+                .all()
+            )
+            if len(check_query) > 0:
+                abort(409, "Relation already exists")
+
+        if product:
+            check_query = (
+                ShopToPrice.query.filter_by(shop_id=shop.id)
+                .filter_by(price_id=price.id)
+                .filter_by(product_id=product.id)
+                .all()
+            )
+            if len(check_query) > 0:
+                abort(409, "Relation already exists")
 
         data = api.payload
         shop_to_price = ShopToPrice(
             id=str(uuid.uuid4()),
             active=data["active"] if data.get("active") else False,
             kind=kind,
+            product=product,
             category=category,
             shop=shop,
             price=price,
@@ -152,6 +177,20 @@ class ShopToPriceResource(Resource):
     def put(self, id):
         """Edit ShopToPrice"""
         item = load(ShopToPrice, id)
+
+        # Todo increase validation -> if the update is correct
+        price = Price.query.filter(Price.id == api.payload["price_id"]).first()
+        shop = Shop.query.filter(Shop.id == api.payload["shop_id"]).first()
+        kind = Kind.query.filter(Kind.id == api.payload["kind_id"]).first()
+        product = Product.query.filter(Product.id == api.payload["product_id"]).first()
+
+        if not price or not shop:
+            abort(400, "Price or Shop not found")
+
+        if (product and kind) or not product and not kind:
+            abort(400, "One Cannabis or one Horeca product has to be provided")
+
+        # Ok we survived all that: let's save it:
         item = update(item, api.payload)
         return item, 201
 
