@@ -1,7 +1,8 @@
 import structlog
 from apis.helpers import get_filter_from_args, get_range_from_args, get_sort_from_args, query_with_filters
 from database import User
-from flask_restx import Namespace, Resource, fields, marshal_with
+from flask_login import current_user
+from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 
 logger = structlog.get_logger(__name__)
@@ -54,3 +55,15 @@ class ValidateEmailResource(Resource):
             return {"available": True, "reason": ""}
         else:
             return {"available": False, "reason": "Email already exists"}
+
+
+@api.route("/current-user")
+@api.doc("Retrieve info about currently logged in user.")
+class UserResource(Resource):
+    @roles_accepted("admin", "moderator", "operator", "employee", "staff")
+    @marshal_with({**user_fields})
+    def get(self):
+        user = User.query.filter(User.id == current_user.id).first()
+        if not user:
+            abort(400, "Unknown user")
+        return user
