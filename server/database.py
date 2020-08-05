@@ -220,7 +220,7 @@ class KindToStrain(db.Model):
 class Product(db.Model):
     __tablename__ = "products"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    name = Column(String(255), unique=True, index=True)
+    name = Column(String(255), index=True)
     short_description_nl = Column(String())
     description_nl = Column(String())
     short_description_en = Column(String())
