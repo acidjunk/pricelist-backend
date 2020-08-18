@@ -73,8 +73,14 @@ def save(item):
         abort(400, "DB error: {}".format(str(error)))
 
 
-def load(model, id):
-    item = model.query.filter_by(id=id).first()
+def load(model, id, fields=None):
+    if fields is None:
+        fields = []
+
+    if not fields:  # query "all" fields:
+        item = model.query.filter_by(id=id).first()
+    else:
+        item = model.query.filter_by(id=id).first()
     if not item:
         abort(404, f"Record id={id} not found")
     return item

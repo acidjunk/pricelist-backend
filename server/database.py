@@ -89,6 +89,7 @@ class Shop(db.Model):
 
     shops_to_price = relationship("ShopToPrice", cascade="save-update, merge, delete")
     shop_to_category = relationship("Category", cascade="save-update, merge, delete")
+    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow())
 
     def __repr__(self):
         return self.name

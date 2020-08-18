@@ -67,6 +67,10 @@ shop_serializer_with_prices = {
     "prices": fields.Nested(price_fields),
 }
 
+shop_hash_fields = {
+    "modified_at": fields.Datetime()
+}
+
 parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
 parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
@@ -95,6 +99,15 @@ class ShopResourceList(Resource):
         shop = Shop(id=str(uuid.uuid4()), **api.payload)
         save(shop)
         return shop, 201
+
+@api.route("/cache-status/<id>")
+@api.doc("Shop cache status so clients can determine if the cash should be invalidated.")
+class ShopCacheResource(Resource):
+    @marshal_with(shop_hash_fields)
+    def get(self, id):
+        """Show date of last change in data that could be visible in this shop"""
+        item = load(Shop, id)
+        return item, 200
 
 
 @api.route("/<id>")
