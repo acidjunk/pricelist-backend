@@ -67,9 +67,7 @@ shop_serializer_with_prices = {
     "prices": fields.Nested(price_fields),
 }
 
-shop_hash_fields = {
-    "modified_at": fields.Datetime()
-}
+shop_hash_fields = {"modified_at": fields.DateTime()}
 
 parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
@@ -99,6 +97,7 @@ class ShopResourceList(Resource):
         shop = Shop(id=str(uuid.uuid4()), **api.payload)
         save(shop)
         return shop, 201
+
 
 @api.route("/cache-status/<id>")
 @api.doc("Shop cache status so clients can determine if the cash should be invalidated.")
