@@ -103,6 +103,7 @@ class Category(db.Model):
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     shop = db.relationship("Shop", lazy=True)
     order_number = Column(Integer, default=0)
+    cannabis = Column(Boolean, default=True)
 
     shops_to_price = relationship("ShopToPrice", cascade="save-update, merge, delete")
 

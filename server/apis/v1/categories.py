@@ -25,6 +25,7 @@ category_serializer = api.model(
         "id": fields.String(required=True),
         "name": fields.String(required=True, description="Category name"),
         "shop_id": fields.String(required=True, description="Shop Id"),
+        "cannabis": fields.Boolean(required=True, description="Will this category be used to store cannabis products?"),
     },
 )
 
@@ -34,6 +35,7 @@ category_serializer_with_shop_names = {
     "shop_id": fields.String(required=True, description="Shop Id"),
     "shop_name": fields.String(description="Shop Name"),
     "category_and_shop": fields.String(description="Category + shop name"),
+    "cannabis": fields.Boolean(description="Will this category be used to store cannabis products?"),
 }
 
 
