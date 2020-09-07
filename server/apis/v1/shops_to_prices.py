@@ -10,7 +10,7 @@ from apis.helpers import (
     save,
     update,
 )
-from database import Category, Kind, Price, Product, Shop, ShopToPrice
+from database import db, Category, Kind, Price, Product, Shop, ShopToPrice
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 from sqlalchemy.orm import contains_eager, defer
@@ -57,6 +57,14 @@ shop_to_price_serializer_with_prices = {
     "use_piece": fields.Boolean(default=True, description="Show the price for one piece?"),
     "piece": fields.Float(description="Price for one item"),
 }
+
+shop_to_price_availability_serializer = api.model(
+    "ShopToPriceAvailability",
+    {
+        "active": fields.Boolean(required=True, description="Whether a Shop to Price relation is in stock."),
+    },
+)
+
 
 parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
@@ -200,3 +208,15 @@ class ShopToPriceResource(Resource):
         item = load(ShopToPrice, id)
         delete(item)
         return "", 204
+
+
+@api.route("/availability/<string:id>")
+class ShopToPriceAvailability(Resource):
+    @roles_accepted("admin")
+    # @roles_accepted("employee")
+    @api.expect(shop_to_price_availability_serializer)
+    def put(self, id):
+        shop_to_price = ShopToPrice.query.filter_by(id=id).first()
+        shop_to_price.active = api.payload["active"]
+        db.session.commit()
+        return 204
