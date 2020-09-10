@@ -1,11 +1,12 @@
 import base64
 import os
 from ast import literal_eval
+from datetime import datetime
 from typing import Dict, List, Optional
 
 import boto3
 import structlog
-from database import db
+from database import Shop, db
 from flask_restx import abort
 from sqlalchemy import String, cast, or_
 from sqlalchemy.sql import expression
@@ -54,7 +55,6 @@ def get_filter_from_args(args, default_filter={}):
     if args["filter"]:
         print(args["filter"])
         try:
-
             filter = literal_eval(args["filter"].replace(":true", ":True").replace(":false", ":False"))
             logger.info("Query parameters set to custom filter", filter=filter)
             return filter
@@ -208,3 +208,12 @@ def name_file(column_name, record_name, image_name=""):
     name = f"{name}.{extension}"
     logger.info("Named file", col_name=column_name, name_in=image_name, name_out=name)
     return name
+
+
+def invalidateShopCache(shop_id):
+    item = load(Shop, shop_id)
+    item.modified_at = datetime.utcnow()
+    try:
+        save(item)
+    except Exception as e:
+        abort(500, f"Error: {e}")

@@ -5,12 +5,13 @@ from apis.helpers import (
     get_filter_from_args,
     get_range_from_args,
     get_sort_from_args,
+    invalidateShopCache,
     load,
     query_with_filters,
     save,
     update,
 )
-from database import db, Category, Kind, Price, Product, Shop, ShopToPrice
+from database import Category, Kind, Price, Product, Shop, ShopToPrice, db
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 from sqlalchemy.orm import contains_eager, defer
@@ -60,9 +61,7 @@ shop_to_price_serializer_with_prices = {
 
 shop_to_price_availability_serializer = api.model(
     "ShopToPriceAvailability",
-    {
-        "active": fields.Boolean(required=True, description="Whether a Shop to Price relation is in stock."),
-    },
+    {"active": fields.Boolean(required=True, description="Whether a Shop to Price relation is in stock.")},
 )
 
 
@@ -158,6 +157,7 @@ class ShopsToPricesResourceList(Resource):
             use_piece=data["use_piece"] if data.get("use_piece") else False,
         )
         save(shop_to_price)
+        invalidateShopCache(shop_to_price.shop_id)
         return shop_to_price, 201
 
 
@@ -176,7 +176,6 @@ class ShopToPriceResource(Resource):
         item.five = price.five if price.five else None
         item.joint = price.joint if price.joint else None
         item.piece = price.piece if price.piece else None
-
         return item, 200
 
     @roles_accepted("admin")
@@ -200,12 +199,14 @@ class ShopToPriceResource(Resource):
 
         # Ok we survived all that: let's save it:
         item = update(item, api.payload)
+        invalidateShopCache(item.shop_id)
         return item, 201
 
     @roles_accepted("admin")
     def delete(self, id):
         """Delete ShopToPrice"""
         item = load(ShopToPrice, id)
+        invalidateShopCache(item.shop_id)
         delete(item)
         return "", 204
 
@@ -219,4 +220,5 @@ class ShopToPriceAvailability(Resource):
         shop_to_price = ShopToPrice.query.filter_by(id=id).first()
         shop_to_price.active = api.payload["active"]
         db.session.commit()
+        invalidateShopCache(shop_to_price.shop_id)
         return 204

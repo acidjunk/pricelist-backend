@@ -38,3 +38,10 @@ def test_unconfirmed_employee_login(client, employee_unconfirmed):
     response = login(client, EMPLOYEE_EMAIL, EMPLOYEE_PASSWORD)
     assert response.json["response"]["errors"]["email"][0] == "Email requires confirmation."
     assert response.status_code == 400
+
+
+def test_auth_token_retrieval(app, client, employee):
+    response = login(client, EMPLOYEE_EMAIL, EMPLOYEE_PASSWORD)
+    assert response.status_code == 200
+    auth_token = response.json["response"]["user"]["authentication_token"]
+    assert auth_token

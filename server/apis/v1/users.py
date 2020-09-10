@@ -3,7 +3,7 @@ from apis.helpers import get_filter_from_args, get_range_from_args, get_sort_fro
 from database import User
 from flask_login import current_user
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
-from flask_security import roles_accepted
+from flask_security import auth_token_required, roles_accepted
 
 logger = structlog.get_logger(__name__)
 
@@ -60,7 +60,7 @@ class ValidateEmailResource(Resource):
 @api.route("/current-user")
 @api.doc("Retrieve info about currently logged in user.")
 class UserResource(Resource):
-    @roles_accepted("admin", "moderator", "operator", "employee", "staff")
+    @auth_token_required
     @marshal_with({**user_fields})
     def get(self):
         user = User.query.filter(User.id == current_user.id).first()

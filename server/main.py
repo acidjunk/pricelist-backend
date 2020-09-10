@@ -77,6 +77,7 @@ app.config["SECURITY_CONFIRMABLE"] = True
 app.config["SECURITY_RECOVERABLE"] = True
 app.config["SECURITY_CHANGEABLE"] = True
 app.config["SECURITY_USER_IDENTITY_ATTRIBUTES"] = ["email"]
+app.config["SECURITY_BACKWARDS_COMPAT_AUTH_TOKEN"] = True
 
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
 app.config["SQLALCHEMY_COMMIT_ON_TEARDOWN"] = True
@@ -130,6 +131,26 @@ def on_user_registered(sender, user, confirm_token):
     user_datastore.add_role_to_user(user, "customer")
     # Todo: Not sure if we need this commit
     db.session.commit()
+
+
+#
+# @login_manager.request_loader
+# def load_user_from_request(request):
+#
+#
+#
+#     token = request.headers.get('Authentication-Token')
+#     data = verify_auth_token(token, "login" )
+#     print(data)
+#
+#
+#     # if token:
+#     #     user_id = User.decode_token(token)
+#     #     print(user_id)
+#     #     1/0
+#
+#     # finally, return None if both methods did not login the user
+#     return None
 
 
 @login_manager.user_loader
