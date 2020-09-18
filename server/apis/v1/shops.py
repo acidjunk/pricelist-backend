@@ -153,6 +153,8 @@ class ShopResource(Resource):
                 "five": pr.price.five if pr.use_five else None,
                 "joint": pr.price.joint if pr.use_joint else None,
                 "piece": pr.price.piece if pr.use_piece else None,
+                "created_at": pr.created_at,
+                "modified_at": pr.modified_at,
             }
             for pr in price_relations
         ]
