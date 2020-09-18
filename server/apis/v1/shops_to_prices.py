@@ -57,6 +57,8 @@ shop_to_price_serializer_with_prices = {
     "joint": fields.Float(description="Price for one joint"),
     "use_piece": fields.Boolean(default=True, description="Show the price for one piece?"),
     "piece": fields.Float(description="Price for one item"),
+    "created_at": fields.DateTime(description="Creation date"),
+    "modified_at": fields.DateTime(description="Last modification date"),
 }
 
 shop_to_price_availability_serializer = api.model(

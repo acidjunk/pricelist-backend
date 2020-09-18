@@ -49,6 +49,8 @@ price_fields = {
     "five": fields.Float,
     "joint": fields.Float,
     "piece": fields.Float,
+    "created_at": fields.DateTime,
+    "modified_at": fields.DateTime,
 }
 
 shop_serializer = api.model(

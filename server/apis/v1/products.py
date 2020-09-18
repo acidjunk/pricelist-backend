@@ -122,7 +122,6 @@ class ProductResource(Resource):
     def put(self, id):
         """Edit Product"""
         item = load(Product, id)
-        api.payload["modified_at"] = datetime.utcnow()
         if api.payload.get("approved"):
             if api.payload["approved"] and not item.approved:
                 api.payload["approved_at"] = datetime.utcnow()

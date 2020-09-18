@@ -67,3 +67,15 @@ class UserResource(Resource):
         if not user:
             abort(400, "Unknown user")
         return user
+
+
+@api.route("/me")
+@api.doc("Retrieve info about currently logged in user.")
+class UserResourceCookie(Resource):
+    @roles_accepted("admin", "moderator", "operator", "employee", "staff")
+    @marshal_with({**user_fields})
+    def get(self):
+        user = User.query.filter(User.id == current_user.id).first()
+        if not user:
+            abort(400, "Unknown user")
+        return user
