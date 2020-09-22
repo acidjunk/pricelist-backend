@@ -104,3 +104,6 @@ zappa_settings.json
 
 # mypy
 .mypy_cache/
+
+# psql
+*.psql
