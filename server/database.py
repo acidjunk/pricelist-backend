@@ -124,7 +124,7 @@ class Kind(db.Model):
     i = Column(Boolean(), default=False)
     s = Column(Boolean(), default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow())
+    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     complete = Column("complete", Boolean(), default=False)
     approved_at = Column(DateTime)
     approved = Column("approved", Boolean(), default=False)
@@ -228,7 +228,7 @@ class Product(db.Model):
     short_description_en = Column(String())
     description_en = Column(String())
     created_at = Column(DateTime, default=datetime.utcnow)
-    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow())
+    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     complete = Column("complete", Boolean(), default=False)
     approved_at = Column(DateTime)
     approved = Column("approved", Boolean(), default=False)
@@ -265,7 +265,7 @@ class ShopToPrice(db.Model):
     use_joint = Column("use_joint", Boolean(), default=True)
     use_piece = Column("use_piece", Boolean(), default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow())
+    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class Strain(db.Model):
