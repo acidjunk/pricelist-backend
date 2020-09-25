@@ -123,7 +123,7 @@ class OrderResourceList(Resource):
 @api.route("/<id>")
 @api.doc("Order detail operations.")
 class OrderResource(Resource):
-    @roles_accepted("admin", "employee")
+    # @roles_accepted("admin", "employee")
     @marshal_with(order_serializer_with_shop_names)
     def get(self, id):
         """List Order"""
