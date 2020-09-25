@@ -25,6 +25,8 @@ order_info_marshaller = {
     "price": fields.Float,
     "kind_id": fields.String,
     "kind_name": fields.String,
+    "product_id": fields.String,
+    "product_name": fields.String,
     "internal_product_id": fields.String,
     "quantity": fields.Integer,
 }
@@ -36,6 +38,8 @@ order_info_serializer = api.model(
         "price": fields.Float,
         "kind_id": fields.String,
         "kind_name": fields.String,
+        "product_id": fields.String,
+        "product_name": fields.String,
         "internal_product_id": fields.String,
         "quantity": fields.Integer,
     },
