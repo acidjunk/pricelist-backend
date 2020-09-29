@@ -13,6 +13,7 @@ from apis.helpers import (
     update,
 )
 from database import Order, Shop
+from flask_login import current_user
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 
@@ -71,6 +72,8 @@ order_serializer_with_shop_names = {
     "status": fields.String,
     "created_at": fields.DateTime,
     "completed_at": fields.DateTime,
+    "completed_by": fields.String,
+    "completed_by_name": fields.String,
 }
 
 order_response_marshaller = api.model(
@@ -98,6 +101,9 @@ class OrderResourceList(Resource):
         filter = get_filter_from_args(args)
 
         query_result, content_range = query_with_filters(Order, Order.query, range, sort, filter)
+        for order in query_result:
+            if order.status == "complete" and order.completed_by:
+                order.completed_by_name = order.user.first_name
 
         return query_result, 200, {"Content-Range": content_range}
 
@@ -111,6 +117,16 @@ class OrderResourceList(Resource):
         shop_id = payload.get("shop_id")
         if not shop_id:
             abort(400, "shop_id not in payload")
+
+        # 5 gram check
+        print(payload["order_info"])
+
+
+
+
+        1/0
+
+
 
         shop = load(Shop, str(shop_id))  # also handles 404 when shop can't be found
         payload["customer_order_id"] = Order.query.filter_by(shop_id=str(shop.id)).count() + 1
@@ -139,6 +155,7 @@ class OrderResource(Resource):
         item = load(Order, id)
         if api.payload.get("status") and api.payload["status"] == "completed" and not item.completed_at:
             item.completed_at = datetime.datetime.utcnow()
+            item.completed_by = current_user.id
         item = update(item, api.payload)
         return item, 201
 
@@ -160,5 +177,6 @@ class OrderResource(Resource):
             and not item.completed_at
         ):
             item.completed_at = datetime.datetime.utcnow()
+            item.completed_by = current_user.id
         _ = update(item, api.payload)
         return "", 204

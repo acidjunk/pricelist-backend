@@ -175,9 +175,12 @@ class Order(db.Model):
     total = Column(Float())
     status = Column(String(), default="pending")
     created_at = Column(DateTime, default=datetime.utcnow)
+    completed_by = Column("completed_by", UUID(as_uuid=True), ForeignKey("user.id"), nullable=True)
     completed_at = Column(DateTime, nullable=True)
 
     shop = db.relationship("Shop", lazy=True)
+
+    user = db.relationship("User", backref=backref("orders", uselist=False))
 
     def __repr__(self):
         return "<Order for shop: %s with total: %s>" % (self.shop.name, self.total)
