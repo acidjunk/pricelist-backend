@@ -119,21 +119,32 @@ class OrderResourceList(Resource):
             abort(400, "shop_id not in payload")
 
         # 5 gram check
-        print(payload["order_info"])
+        total_cannabis = get_price_rules_total(payload["order_info"])
+        # print(total_cannabis)
 
+        # check current availability for all products
+        # Todo
 
-
-
-        1/0
-
-
-
+        # 1/0
         shop = load(Shop, str(shop_id))  # also handles 404 when shop can't be found
         payload["customer_order_id"] = Order.query.filter_by(shop_id=str(shop.id)).count() + 1
         # Todo: recalculate total and use it as a checksum for the payload
         order = Order(id=str(uuid.uuid4()), **payload)
         save(order)
         return order, 201
+
+
+def get_price_rules_total(order_items):
+    JOINT=0.4
+
+    # Todo: add correct order line for 0.5 and 2.5
+    prices = {"1 gram": 1, "5 gram": 5, "1 joint": JOINT}
+    total =0
+    for item in order_items:
+        if item["description"] in prices:
+            total = total + (prices[item["description"]] * item["quantity"])
+
+    return total
 
 
 @api.route("/<id>")

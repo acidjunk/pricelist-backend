@@ -1,5 +1,6 @@
 from unittest import mock
 
+from apis.v1.orders import get_price_rules_total
 from database import Order
 
 
@@ -162,18 +163,66 @@ def test_create_order_validation(client, price_1, price_2, kind_1, kind_2, shop_
     # Todo: test checksum functionality (totals should match with quantity in items)
 
 
-def test_patch_order_to_complete(client, shop_with_orders):
+def test_patch_order_to_complete(client, shop_with_orders, admin):
     # Get the uncompleted order_id from the fixture:
     order = Order.query.filter_by(status="pending").first()
 
     # somehow check_quick_token() looses the request in test setup
     with mock.patch("flask_security.decorators._check_token", return_value=True):
         with mock.patch("flask_principal.Permission.can", return_value=True):
+            with mock.patch('flask_login.utils._get_user', return_value=admin):
+                data = {"status": "complete"}
+                response = client.patch(f"/v1/orders/{order.id}", json=data, follow_redirects=True)
+                assert response.status_code == 204
 
-            data = {"status": "complete"}
-            response = client.patch(f"/v1/orders/{order.id}", json=data, follow_redirects=True)
-            assert response.status_code == 204
+                updated_order = Order.query.filter_by(id=str(order.id)).first()
+                assert updated_order.status == "complete"
+                assert updated_order.completed_at is not None
 
-            updated_order = Order.query.filter_by(id=str(order.id)).first()
-            assert updated_order.status == "complete"
-            assert updated_order.completed_at is not None
+
+def test_price_rules():
+    order_info = [
+        {'description': '1 gram', 'price': 8, 'kind_id': 'fd2f4ee4-a58e-425d-998b-003757b790eb',
+         'kind_name': 'Soort 1', 'product_id': None, 'product_name': None, 'internal_product_id': 1, 'quantity': 1},
+        {'description': '1 gram', 'price': 25, 'kind_id': '593277e5-f301-4662-9cf5-488e2479bac0',
+         'kind_name': 'Soort 2', 'product_id': None, 'product_name': None, 'internal_product_id': 47,
+         'quantity': 1},
+        {'description': '1 gram', 'price': 9, 'kind_id': 'b13e26c3-834b-493f-a1d0-17859c41cea0',
+         'kind_name': 'Soort 3', 'product_id': None, 'product_name': None, 'internal_product_id': 4, 'quantity': 1}
+    ]
+    assert get_price_rules_total(order_info) == 3
+    
+    # Check on quantity
+    order_info = [
+        {'description': '1 gram', 'price': 8, 'kind_id': 'fd2f4ee4-a58e-425d-998b-003757b790eb',
+         'kind_name': 'Soort 1', 'product_id': None, 'product_name': None, 'internal_product_id': 1, 'quantity': 4},
+        {'description': '1 gram', 'price': 25, 'kind_id': '593277e5-f301-4662-9cf5-488e2479bac0',
+         'kind_name': 'Soort 2', 'product_id': None, 'product_name': None, 'internal_product_id': 47,
+         'quantity': 1},
+        {'description': '1 gram', 'price': 9, 'kind_id': 'b13e26c3-834b-493f-a1d0-17859c41cea0',
+         'kind_name': 'Soort 3', 'product_id': None, 'product_name': None, 'internal_product_id': 4, 'quantity': 1}
+    ]
+    assert get_price_rules_total(order_info) == 6
+
+    # Check with 5g 
+    order_info = [
+        {'description': '5 gram', 'price': 8, 'kind_id': 'fd2f4ee4-a58e-425d-998b-003757b790eb',
+         'kind_name': 'Soort 1', 'product_id': None, 'product_name': None, 'internal_product_id': 1, 'quantity': 1},
+        {'description': '1 gram', 'price': 25, 'kind_id': '593277e5-f301-4662-9cf5-488e2479bac0',
+         'kind_name': 'Soort 2', 'product_id': None, 'product_name': None, 'internal_product_id': 47,
+         'quantity': 1},
+        {'description': '1 gram', 'price': 9, 'kind_id': 'b13e26c3-834b-493f-a1d0-17859c41cea0',
+         'kind_name': 'Soort 3', 'product_id': None, 'product_name': None, 'internal_product_id': 4, 'quantity': 1}
+    ]
+    assert get_price_rules_total(order_info) == 7
+
+    # Check with joint 
+    order_info = [
+        {'description': '1 gram', 'price': 8, 'kind_id': 'fd2f4ee4-a58e-425d-998b-003757b790eb',
+         'kind_name': 'Soort 1', 'product_id': None, 'product_name': None, 'internal_product_id': 1, 'quantity': 4},
+        {'description': '1 gram', 'price': 25, 'kind_id': '593277e5-f301-4662-9cf5-488e2479bac0',
+         'kind_name': 'Soort 2', 'product_id': None, 'product_name': None, 'internal_product_id': 47,
+         'quantity': 1},
+        {'description': '1 joint', 'price': 6, 'kind_id': 'a99f677f-14dc-4d67-9d41-ff3e85dd09fc',
+         'kind_name': 'Mega Joint', 'product_id': None, 'product_name': None, 'internal_product_id': 26, 'quantity': 1}
+    ]
