@@ -164,7 +164,7 @@ class OrderResource(Resource):
     def put(self, id):
         """Edit Order"""
         item = load(Order, id)
-        if api.payload.get("status") and api.payload["status"] == "completed" and not item.completed_at:
+        if api.payload.get("status") and (api.payload["status"] == "completed" or api.payload["status"] == "cancelled") and not item.completed_at:
             item.completed_at = datetime.datetime.utcnow()
             item.completed_by = current_user.id
         item = update(item, api.payload)
@@ -184,7 +184,7 @@ class OrderResource(Resource):
         if (
             "complete" not in item.status
             and api.payload.get("status")
-            and api.payload["status"] == "complete"
+            and (api.payload["status"] == "complete" or api.payload["status"] == "cancelled")
             and not item.completed_at
         ):
             item.completed_at = datetime.datetime.utcnow()
