@@ -102,7 +102,7 @@ class OrderResourceList(Resource):
 
         query_result, content_range = query_with_filters(Order, Order.query, range, sort, filter)
         for order in query_result:
-            if order.status == "complete" and order.completed_by:
+            if (order.status == "complete" or order.status == "cancelled") and order.completed_by:
                 order.completed_by_name = order.user.first_name
 
         return query_result, 200, {"Content-Range": content_range}
@@ -120,12 +120,12 @@ class OrderResourceList(Resource):
 
         # 5 gram check
         total_cannabis = get_price_rules_total(payload["order_info"])
-        # print(total_cannabis)
+        if total_cannabis > 5:
+            abort(400, "max 5 grams allowed")
 
-        # check current availability for all products
-        # Todo
+        # Availability check
+        # TODO
 
-        # 1/0
         shop = load(Shop, str(shop_id))  # also handles 404 when shop can't be found
         payload["customer_order_id"] = Order.query.filter_by(shop_id=str(shop.id)).count() + 1
         # Todo: recalculate total and use it as a checksum for the payload
