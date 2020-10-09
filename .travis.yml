@@ -3,8 +3,8 @@ language: python
 
 # List the versions of Python you'd like to test against
 python:
-  - 3.6
   - 3.7
+  - 3.8
 
 # Setup DB
 services:
