@@ -33,7 +33,6 @@ table_serializer_with_shop_names = {
     "name": fields.String(required=True, description="Table name"),
     "shop_id": fields.String(required=True, description="Shop Id"),
     "shop_name": fields.String(description="Shop Name"),
-
 }
 
 

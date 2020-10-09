@@ -1,7 +1,6 @@
 from flask_restx import Api
 
 from .v1.categories import api as categories_ns
-from .v1.tables import api as tables_ns
 from .v1.flavors import api as flavors_ns
 from .v1.kinds import api as kinds_ns
 from .v1.kinds_images import api as kinds_images_ns
@@ -15,6 +14,7 @@ from .v1.products_images import api as products_images_ns
 from .v1.shops import api as shops_ns
 from .v1.shops_to_prices import api as shops_to_prices_ns
 from .v1.strains import api as strains_ns
+from .v1.tables import api as tables_ns
 from .v1.tags import api as tags_ns
 from .v1.users import api as users_ns
 
