@@ -7,3 +7,4 @@ isort
 # Typing
 mypy
 pre-commit
+colorama

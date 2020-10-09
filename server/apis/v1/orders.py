@@ -12,10 +12,11 @@ from apis.helpers import (
     save,
     update,
 )
-from database import Order, Shop
+from database import Order, Shop, ShopToPrice
 from flask_login import current_user
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
+from sqlalchemy.orm import contains_eager, defer
 
 logger = structlog.get_logger(__name__)
 
@@ -89,6 +90,71 @@ parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]'
 parser.add_argument("filter", location="args", help="Filter default=[]")
 
 
+def get_price_rules_total(order_items):
+    """Calculate the total number of grams."""
+    JOINT = 0.4
+
+    # Todo: add correct order line for 0.5 and 2.5
+    prices = {"0,5 gram": 0.5, "1 gram": 1, "2,5 gram": 2.5, "5 gram": 5, "1 joint": JOINT}
+    total = 0
+    for item in order_items:
+        if item["description"] in prices:
+            total = total + (prices[item["description"]] * item["quantity"])
+
+    return total
+
+
+def get_first_unavailable_product_name(order_items, shop_id):
+    """Search for the first unavailable product and return it's name."""
+    products = (
+        ShopToPrice.query.join(ShopToPrice.price)
+        .options(contains_eager(ShopToPrice.price), defer("price_id"))
+        .filter(ShopToPrice.shop_id == shop_id)
+        .all()
+    )
+    for item in order_items:
+        found_product = False  # Start False
+        for product in products:
+            print(item)
+            if item.get("kind_id") and item["kind_id"] == str(product.kind_id):
+                if product.active:
+                    if item["description"] == "0,5 gram" and (not product.use_half or not product.price.half):
+                        logger.warning("Product is currently not available in 0.5 gram", kind_name=item["kind_name"])
+                    elif item["description"] == "1 gram" and (not product.use_one or not product.price.one):
+                        logger.warning("Product is currently not available in 1 gram", kind_name=item["kind_name"])
+                    elif item["description"] == "2,5 gram" and (not product.use_two_five or not product.price.two_five):
+                        logger.warning("Product is currently not available in 2.5 gram", kind_name=item["kind_name"])
+                    elif item["description"] == "5 gram" and (not product.use_five or not product.price.five):
+                        logger.warning("Product is currently not available in 5 gram", kind_name=item["kind_name"])
+                    elif item["description"] == "1 joint" and (not product.use_joint or not product.price.joint):
+                        logger.warning("Product is currently not available as joint", kind_name=item["kind_name"])
+                    else:
+                        logger.info(
+                            "Found product in order item and in available products",
+                            kind_id=item["kind_id"],
+                            kind_name=item["kind_name"],
+                        )
+                        found_product = True
+                else:
+                    logger.warning("Product is currently not available", kind_name=item["kind_name"])
+            if item.get("product_id") and item["product_id"] == str(product.product_id):
+                if product.active:
+                    if not product.use_piece or not product.price.piece:
+                        logger.warning("Product is currently not available as piece", product_name=item["product_name"])
+                    else:
+                        logger.info(
+                            "Found horeca product in order item and in available products",
+                            product_id=item["product_id"],
+                            product_name=item["product_name"],
+                        )
+                        found_product = True
+                else:
+                    logger.warning("Horeca product is currently not available", product_name=item["product_name"])
+        if not found_product:
+            return item["kind_name"] if item["kind_name"] else item["product_name"]
+    return None
+
+
 @api.route("/")
 @api.doc("Show all orders.")
 class OrderResourceList(Resource):
@@ -128,8 +194,9 @@ class OrderResourceList(Resource):
             abort(400, "MAX_5_GRAMS_ALLOWED")
 
         # Availability check
-        # TODO
-        # abort(400, "Amnesia, OUT_OF_STOCK")
+        unavailable_product_name = get_first_unavailable_product_name(payload["order_info"], shop_id)
+        if unavailable_product_name:
+            abort(400, f"{unavailable_product_name}, OUT_OF_STOCK")
 
         shop = load(Shop, str(shop_id))  # also handles 404 when shop can't be found
         payload["customer_order_id"] = Order.query.filter_by(shop_id=str(shop.id)).count() + 1
@@ -137,19 +204,6 @@ class OrderResourceList(Resource):
         order = Order(id=str(uuid.uuid4()), **payload)
         save(order)
         return order, 201
-
-
-def get_price_rules_total(order_items):
-    JOINT = 0.4
-
-    # Todo: add correct order line for 0.5 and 2.5
-    prices = {"1 gram": 1, "5 gram": 5, "1 joint": JOINT}
-    total = 0
-    for item in order_items:
-        if item["description"] in prices:
-            total = total + (prices[item["description"]] * item["quantity"])
-
-    return total
 
 
 @api.route("/<id>")

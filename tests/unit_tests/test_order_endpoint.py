@@ -70,7 +70,7 @@ def test_create_order(client, price_1, price_2, kind_1, kind_2, shop_with_produc
     assert order.customer_order_id == 2
 
 
-def test_create_imixed_order(client, price_1, price_2, price_3, product_1, kind_1, kind_2, shop_with_products):
+def test_create_mixed_order(client, price_1, price_2, price_3, product_1, kind_1, kind_2, shop_with_products):
     items = [
         {
             "description": "1 gram",
@@ -89,10 +89,10 @@ def test_create_imixed_order(client, price_1, price_2, price_3, product_1, kind_
             "quantity": 1,
         },
         {
-            "description": "1 cola",
+            "description": "1",
             "price": price_3.piece,
-            "kind_id": str(product_1.id),
-            "kind_name": product_1.name,
+            "product_id": str(product_1.id),
+            "product_name": product_1.name,
             "internal_product_id": "03",
             "quantity": 1,
         },
@@ -104,7 +104,7 @@ def test_create_imixed_order(client, price_1, price_2, price_3, product_1, kind_
         "order_info": items,
     }
     response = client.post(f"/v1/orders", json=data, follow_redirects=True)
-    assert response.status_code == 201
+    assert response.status_code == 201, response.json
     assert response.json["customer_order_id"] == 1
     assert response.json["total"] == 26.50
 
@@ -121,7 +121,7 @@ def test_create_imixed_order(client, price_1, price_2, price_3, product_1, kind_
     assert response.json["customer_order_id"] == 2
     assert response.json["total"] == 26.50
 
-    assert response.status_code == 201
+    assert response.status_code == 201, response.json
     order = Order.query.filter_by(customer_order_id=2).first()
     assert order.customer_order_id == 2
 
@@ -153,7 +153,7 @@ def test_create_order_validation(client, price_1, price_2, kind_1, kind_2, shop_
         "order_info": items,
     }
     response = client.post(f"/v1/orders", json=data, follow_redirects=True)
-    assert response.status_code == 404
+    assert response.status_code == 400
 
     # No shop_id
     data = {"total": 24.0, "notes": "Nice one", "order_info": items}  # 2x 1 gram of 10,- + 1 joint of 4

@@ -53,7 +53,7 @@ def get_sort_from_args(args, default_sort="name", default_sort_order="ASC"):
 
 def get_filter_from_args(args, default_filter={}):
     if args["filter"]:
-        print(args["filter"])
+        # print(args["filter"])
         try:
             filter = literal_eval(args["filter"].replace(":true", ":True").replace(":false", ":False"))
             logger.info("Query parameters set to custom filter", filter=filter)
