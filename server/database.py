@@ -95,6 +95,17 @@ class Shop(db.Model):
         return self.name
 
 
+class Table(db.Model):
+    __tablename__ = "shop_tables"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String(255))
+    shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
+    shop = db.relationship("Shop", lazy=True)
+
+    def __repr__(self):
+        return f"{self.shop.name}: {self.name}"
+
+
 class Category(db.Model):
     __tablename__ = "categories"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -171,6 +182,7 @@ class Order(db.Model):
     customer_order_id = Column(Integer)
     notes = Column(String, nullable=True)
     shop_id = Column(UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
+    table_id = Column(UUID(as_uuid=True), ForeignKey("shop_tables.id"), nullable=True)
     order_info = Column(JSON)
     total = Column(Float())
     status = Column(String(), default="pending")
@@ -179,8 +191,8 @@ class Order(db.Model):
     completed_at = Column(DateTime, nullable=True)
 
     shop = db.relationship("Shop", lazy=True)
-
     user = db.relationship("User", backref=backref("orders", uselist=False))
+    table = db.relationship("Table", backref=backref("shop_tables", uselist=False))
 
     def __repr__(self):
         return "<Order for shop: %s with total: %s>" % (self.shop.name, self.total)

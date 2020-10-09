@@ -1,6 +1,7 @@
 from flask_restx import Api
 
 from .v1.categories import api as categories_ns
+from .v1.tables import api as tables_ns
 from .v1.flavors import api as flavors_ns
 from .v1.kinds import api as kinds_ns
 from .v1.kinds_images import api as kinds_images_ns
@@ -19,6 +20,7 @@ from .v1.users import api as users_ns
 
 api = Api(title="Pricelist API", version="1.0", description="A restful api for the Pricelist")
 api.add_namespace(shops_ns, path="/v1/shops")
+api.add_namespace(tables_ns, path="/v1/tables")
 api.add_namespace(strains_ns, path="/v1/strains")
 api.add_namespace(orders_ns, path="/v1/orders")
 api.add_namespace(shops_to_prices_ns, path="/v1/shops-to-prices")
