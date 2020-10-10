@@ -170,6 +170,18 @@ def get_qr_shop_image(shop_id):
     return flask.send_file(img_buf, mimetype="image/png")
 
 
+@app.route("/qr/shop/<shop_id>/<table_id>")
+def get_qr_shop_table_image(shop_id, table_id):
+    logger.info("Serving generated Shop/Table QR images", shop_id=shop_id, table_id=table_id)
+    img_buf = io.BytesIO()
+    url = f"{app.config['FRONTEND_URI']}/shop/{shop_id}/{table_id}"
+    logger.debug("Shop QR URL", url=url)
+    img = generate_qr_image(url=url)
+    img.save(img_buf)
+    img_buf.seek(0)
+    return flask.send_file(img_buf, mimetype="image/png")
+
+
 @app.route("/qr/shop/<shop_id>/category/<category_id>")
 def get_qr_category_image(shop_id, category_id):
     logger.info("Serving generated Category QR images", shop_id=shop_id, category_id=category_id)
