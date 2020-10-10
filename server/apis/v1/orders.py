@@ -115,7 +115,6 @@ def get_first_unavailable_product_name(order_items, shop_id):
     for item in order_items:
         found_product = False  # Start False
         for product in products:
-            print(item)
             if item.get("kind_id") and item["kind_id"] == str(product.kind_id):
                 if product.active:
                     if item["description"] == "0,5 gram" and (not product.use_half or not product.price.half):
@@ -173,7 +172,7 @@ class OrderResourceList(Resource):
             if (order.status == "complete" or order.status == "cancelled") and order.completed_by:
                 order.completed_by_name = order.user.first_name
             if order.table_id:
-                order.table.name = "ifloemp"
+                order.table_name = order.table.name
 
         return query_result, 200, {"Content-Range": content_range}
 
