@@ -2,4 +2,4 @@
 source venv/bin/activate
 export $(cat env | grep -v ^# | xargs)
 cd server
-flask run
+flask run -h 0.0.0.0
