@@ -123,7 +123,8 @@ class MainCategory(db.Model):
 class Category(db.Model):
     __tablename__ = "categories"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    main_category_id = Column("main_category_id", UUID(as_uuid=True), ForeignKey("main_categories.id"), nullable=True, index=True)
+    main_category_id = Column("main_category_id", UUID(as_uuid=True), ForeignKey("main_categories.id"), nullable=True,
+                              index=True)
     main_category = db.relationship("MainCategory", lazy=True)
     name = Column(String(255))
     name_en = Column(String(255), nullable=True)
