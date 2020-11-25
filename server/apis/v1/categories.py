@@ -24,6 +24,7 @@ category_serializer = api.model(
     {
         "id": fields.String(required=True),
         "name": fields.String(required=True, description="Category name"),
+        "name_en": fields.String(required=False, description="Category name (EN)"),
         "shop_id": fields.String(required=True, description="Shop Id"),
         "cannabis": fields.Boolean(required=True, description="Will this category be used to store cannabis products?"),
     },
@@ -32,6 +33,8 @@ category_serializer = api.model(
 category_serializer_with_shop_names = {
     "id": fields.String(required=True),
     "name": fields.String(required=True, description="Category name"),
+    "name_en": fields.String(required=False, description="Category name (EN)"),
+    "main_category_name": fields.String(description="Main category name"),
     "shop_id": fields.String(required=True, description="Shop Id"),
     "shop_name": fields.String(description="Shop Name"),
     "category_and_shop": fields.String(description="Category + shop name"),
@@ -60,8 +63,9 @@ class CategoryResourceList(Resource):
 
         query_result, content_range = query_with_filters(Category, Category.query, range, sort, filter)
         for result in query_result:
+            result.main_category_name = result.main_category.name if result.main_category else "Unknown"
             result.shop_name = result.shop.name
-            result.category_and_shop = f"{result.shop.name}:{result.name}"
+            result.category_and_shop = f"{result.name} in {result.shop.name}"
 
         return query_result, 200, {"Content-Range": content_range}
 

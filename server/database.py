@@ -106,10 +106,27 @@ class Table(db.Model):
         return f"{self.shop.name}: {self.name}"
 
 
+class MainCategory(db.Model):
+    __tablename__ = "main_categories"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String(255))
+    name_en = Column(String(255), nullable=True)
+    description = Column(String(255), unique=True, index=True)
+    shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
+    shop = db.relationship("Shop", lazy=True)
+    order_number = Column(Integer, default=0)
+
+    def __repr__(self):
+        return f"{self.shop.name}: {self.name}"
+
+
 class Category(db.Model):
     __tablename__ = "categories"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    main_category_id = Column("main_category_id", UUID(as_uuid=True), ForeignKey("main_categories.id"), nullable=True, index=True)
+    main_category = db.relationship("MainCategory", lazy=True)
     name = Column(String(255))
+    name_en = Column(String(255), nullable=True)
     description = Column(String(255), unique=True, index=True)
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     shop = db.relationship("Shop", lazy=True)
@@ -119,7 +136,8 @@ class Category(db.Model):
     shops_to_price = relationship("ShopToPrice", cascade="save-update, merge, delete")
 
     def __repr__(self):
-        return f"{self.shop.name}: {self.name}"
+        main_categorie_name = self.main_category.name if self.main_category_id else "NO_MAIN"
+        return f"{self.shop.name}: {main_categorie_name}: {self.name}"
 
 
 class Kind(db.Model):

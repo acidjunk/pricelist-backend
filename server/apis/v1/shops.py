@@ -133,7 +133,7 @@ class ShopResource(Resource):
                 "active": pr.active,
                 "category_id": pr.category_id,
                 "category_name": pr.category.name,
-                "main_category_name": "Cannabis" if pr.category.cannabis else "Horeca",
+                "main_category_name": pr.category.main_category.name if pr.category.main_category else "Unknown",
                 "kind_id": pr.kind_id,
                 "kind_image": pr.kind.image_1 if pr.kind_id else None,
                 "kind_name": pr.kind.name if pr.kind_id else None,

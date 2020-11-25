@@ -1,6 +1,7 @@
 from flask_restx import Api
 
 from .v1.categories import api as categories_ns
+from .v1.main_categories import api as main_categories_ns
 from .v1.flavors import api as flavors_ns
 from .v1.kinds import api as kinds_ns
 from .v1.kinds_images import api as kinds_images_ns
@@ -26,6 +27,7 @@ api.add_namespace(orders_ns, path="/v1/orders")
 api.add_namespace(shops_to_prices_ns, path="/v1/shops-to-prices")
 api.add_namespace(prices_ns, path="/v1/prices")
 api.add_namespace(categories_ns, path="/v1/categories")
+api.add_namespace(main_categories_ns, path="/v1/main-categories")
 api.add_namespace(flavors_ns, path="/v1/flavors")
 api.add_namespace(tags_ns, path="/v1/tags")
 api.add_namespace(kinds_ns, path="/v1/kinds")

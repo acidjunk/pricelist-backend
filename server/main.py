@@ -29,7 +29,7 @@ from database import (
     Tag,
     User,
     db,
-    user_datastore,
+    user_datastore, MainCategory,
 )
 from flask import Flask, url_for
 from flask_admin import Admin
@@ -218,6 +218,7 @@ db.init_app(app)
 mail.init_app(app)
 admin.add_view(ShopAdminView(Shop, db.session))
 admin.add_view(OrderAdminView(Order, db.session))
+admin.add_view(BaseAdminView(MainCategory, db.session))
 admin.add_view(CategoryAdminView(Category, db.session))
 admin.add_view(KindAdminView(Kind, db.session))
 admin.add_view(PriceAdminView(Price, db.session))
