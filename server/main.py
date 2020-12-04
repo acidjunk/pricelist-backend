@@ -29,7 +29,8 @@ from database import (
     Tag,
     User,
     db,
-    user_datastore, MainCategory,
+    user_datastore,
+    MainCategory,
 )
 from flask import Flask, url_for
 from flask_admin import Admin

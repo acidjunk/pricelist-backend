@@ -111,6 +111,7 @@ class MainCategory(db.Model):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255))
     name_en = Column(String(255), nullable=True)
+    icon = Column(String(60), nullable=True)
     description = Column(String(255), unique=True, index=True)
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     shop = db.relationship("Shop", lazy=True)
@@ -123,11 +124,13 @@ class MainCategory(db.Model):
 class Category(db.Model):
     __tablename__ = "categories"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    main_category_id = Column("main_category_id", UUID(as_uuid=True), ForeignKey("main_categories.id"), nullable=True,
-                              index=True)
+    main_category_id = Column(
+        "main_category_id", UUID(as_uuid=True), ForeignKey("main_categories.id"), nullable=True, index=True
+    )
     main_category = db.relationship("MainCategory", lazy=True)
     name = Column(String(255))
     name_en = Column(String(255), nullable=True)
+    icon = Column(String(60), nullable=True)
     description = Column(String(255), unique=True, index=True)
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     shop = db.relationship("Shop", lazy=True)
@@ -282,6 +285,7 @@ class ShopToPrice(db.Model):
     __tablename__ = "shops_to_price"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     active = Column("active", Boolean(), default=True)
+    new = Column("new", Boolean(), default=False)
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     shop = db.relationship("Shop", lazy=True)
     category_id = Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id"), nullable=True, index=True)

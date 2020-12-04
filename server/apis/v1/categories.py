@@ -35,6 +35,7 @@ category_serializer_with_shop_names = {
     "name": fields.String(required=True, description="Category name"),
     "name_en": fields.String(required=False, description="Category name (EN)"),
     "main_category_name": fields.String(description="Main category name"),
+    "main_category_name_en": fields.String(description="Main category name (EN)"),
     "shop_id": fields.String(required=True, description="Shop Id"),
     "shop_name": fields.String(description="Shop Name"),
     "category_and_shop": fields.String(description="Category + shop name"),
@@ -64,6 +65,7 @@ class CategoryResourceList(Resource):
         query_result, content_range = query_with_filters(Category, Category.query, range, sort, filter)
         for result in query_result:
             result.main_category_name = result.main_category.name if result.main_category else "Unknown"
+            result.main_category_name_en = result.main_category.name_en if result.main_category_en else "Unknown"
             result.shop_name = result.shop.name
             result.category_and_shop = f"{result.name} in {result.shop.name}"
 
@@ -88,7 +90,9 @@ class CategoryResource(Resource):
         """List Category"""
         item = load(Category, id)
         item.shop_name = item.shop.name
-        item.category_and_shop = f"{item.shop.name}:{item.name}"
+        item.category_and_shop = f"{item.name} in {item.shop.name}"
+        item.main_category_name = item.main_category.name if item.main_category else "Unknown"
+        item.main_category_name_en = item.main_category.name_en if item.main_category_en else "Unknown"
         return item, 200
 
     @roles_accepted("admin")

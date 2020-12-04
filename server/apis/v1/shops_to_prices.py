@@ -23,6 +23,7 @@ shop_to_price_serializer = api.model(
     {
         "id": fields.String(),
         "active": fields.Boolean(default=True),
+        "new": fields.Boolean(default=False),
         "price_id": fields.String(required=True, description="Price Id"),
         "shop_id": fields.String(required=True, description="Shop Id"),
         "category_id": fields.String(description="Category Id"),
@@ -40,6 +41,7 @@ shop_to_price_serializer = api.model(
 shop_to_price_serializer_with_prices = {
     "id": fields.String(),
     "active": fields.Boolean(default=True),
+    "new": fields.Boolean(default=False),
     "price_id": fields.String(required=True, description="Price Id"),
     "shop_id": fields.String(required=True, description="Shop Id"),
     "category_id": fields.String(description="Category Id"),
