@@ -36,6 +36,7 @@ category_serializer_with_shop_names = {
     "order_number": fields.Integer(),
     "name": fields.String(required=True, description="Category name"),
     "name_en": fields.String(required=False, description="Category name (EN)"),
+    "main_category_id": fields.String(description="Main category name"),
     "main_category_name": fields.String(description="Main category name"),
     "main_category_name_en": fields.String(description="Main category name (EN)"),
     "shop_id": fields.String(required=True, description="Shop Id"),
