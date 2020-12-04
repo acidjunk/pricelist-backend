@@ -65,7 +65,7 @@ class CategoryResourceList(Resource):
         query_result, content_range = query_with_filters(Category, Category.query, range, sort, filter)
         for result in query_result:
             result.main_category_name = result.main_category.name if result.main_category else "Unknown"
-            result.main_category_name_en = result.main_category.name_en if result.main_category_en else "Unknown"
+            result.main_category_name_en = result.main_category.name_en if result.main_category else "Unknown"
             result.shop_name = result.shop.name
             result.category_and_shop = f"{result.name} in {result.shop.name}"
 
@@ -92,7 +92,7 @@ class CategoryResource(Resource):
         item.shop_name = item.shop.name
         item.category_and_shop = f"{item.name} in {item.shop.name}"
         item.main_category_name = item.main_category.name if item.main_category else "Unknown"
-        item.main_category_name_en = item.main_category.name_en if item.main_category_en else "Unknown"
+        item.main_category_name_en = item.main_category.name_en if item.main_category else "Unknown"
         return item, 200
 
     @roles_accepted("admin")
