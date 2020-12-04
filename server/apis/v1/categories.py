@@ -23,6 +23,7 @@ category_serializer = api.model(
     "Category",
     {
         "id": fields.String(required=True),
+        "order_number": fields.Integer(),
         "name": fields.String(required=True, description="Category name"),
         "name_en": fields.String(required=False, description="Category name (EN)"),
         "shop_id": fields.String(required=True, description="Shop Id"),
@@ -32,6 +33,7 @@ category_serializer = api.model(
 
 category_serializer_with_shop_names = {
     "id": fields.String(required=True),
+    "order_number": fields.Integer(),
     "name": fields.String(required=True, description="Category name"),
     "name_en": fields.String(required=False, description="Category name (EN)"),
     "main_category_name": fields.String(description="Main category name"),
