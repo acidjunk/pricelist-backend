@@ -40,6 +40,20 @@ kind_serializer = api.model(
     },
 )
 
+price_fields = {
+    "id": fields.String,
+    "internal_product_id": fields.Integer,
+    "active": fields.Boolean,
+    "new": fields.Boolean,
+    "one": fields.Float,
+    "two_five": fields.Float,
+    "five": fields.Float,
+    "joint": fields.Float,
+    "piece": fields.Float,
+    "created_at": fields.DateTime,
+    "modified_at": fields.DateTime,
+}
+
 kind_serializer_with_relations = {
     "id": fields.String(),
     "name": fields.String(required=True, description="Product name"),
@@ -68,6 +82,7 @@ kind_serializer_with_relations = {
     "created_at": fields.DateTime(description="Creation date"),
     "modified_at": fields.DateTime(description="Last modification date"),
     "approved_at": fields.DateTime(description="Ready for sale date"),
+    "prices": fields.Nested(price_fields),
 }
 
 
@@ -128,13 +143,44 @@ class KindResourceList(Resource):
         return kind, 201
 
 
+detail_parser = api.parser()
+detail_parser.add_argument("shop", location="args", help="Optional shop id")
+
+
 @api.route("/<id>")
 @api.doc("Kind detail operations.")
 class KindResource(Resource):
     @marshal_with(kind_serializer_with_relations)
+    @api.doc(parser=detail_parser)
     def get(self, id):
         """List Kind"""
+        args = detail_parser.parse_args()
+
         item = load(Kind, id)
+
+        shop = args.get("shop")
+        if shop:
+            item.prices = []
+            for price_relation in item.shop_to_price:
+                if str(price_relation.shop_id) == shop:
+                    item.prices.append(
+                        {
+                            "id": price_relation.price.id,
+                            "internal_product_id": price_relation.price.internal_product_id,
+                            "active": price_relation.active,
+                            "new": price_relation.new,
+                            "half": price_relation.price.half if price_relation.use_half else None,
+                            "one": price_relation.price.one if price_relation.use_one else None,
+                            "two_five": price_relation.price.two_five if price_relation.use_two_five else None,
+                            "five": price_relation.price.five if price_relation.use_five else None,
+                            "joint": price_relation.price.joint if price_relation.use_joint else None,
+                            "piece": price_relation.price.piece if price_relation.use_piece else None,
+                            "created_at": price_relation.created_at,
+                            "modified_at": price_relation.modified_at,
+                        }
+                    )
+        else:
+            item.prices = []
 
         item.tags = [
             {"id": tag.id, "name": tag.tag.name, "amount": tag.amount}
