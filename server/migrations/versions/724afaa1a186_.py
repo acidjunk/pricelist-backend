@@ -5,8 +5,8 @@ Revises: 7f1d088444e7
 Create Date: 2020-11-24 15:15:48.094874
 
 """
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -25,10 +25,7 @@ def upgrade():
         sa.Column("description", sa.String(length=255), nullable=True),
         sa.Column("shop_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("order_number", sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["shop_id"],
-            ["shops.id"],
-        ),
+        sa.ForeignKeyConstraint(["shop_id"], ["shops.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_main_categories_description"), "main_categories", ["description"], unique=True)

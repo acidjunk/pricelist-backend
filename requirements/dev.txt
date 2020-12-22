@@ -2,9 +2,9 @@
 # Code style
 autoflake
 black
+colorama
 ipython
 isort
 # Typing
 mypy
 pre-commit
-colorama

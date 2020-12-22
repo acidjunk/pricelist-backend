@@ -149,7 +149,9 @@ class ShopResource(Resource):
                 "main_category_name": pr.category.main_category.name if pr.category.main_category else "Unknown",
                 "main_category_name_en": pr.category.main_category.name_en if pr.category.main_category else "Unknown",
                 "main_category_icon": pr.category.main_category.icon if pr.category.main_category else "Unknown",
-                "main_category_order_number": pr.category.main_category.order_number if pr.category.main_category else 0,
+                "main_category_order_number": pr.category.main_category.order_number
+                if pr.category.main_category
+                else 0,
                 "kind_id": pr.kind_id,
                 "kind_image": pr.kind.image_1 if pr.kind_id else None,
                 "kind_name": pr.kind.name if pr.kind_id else None,

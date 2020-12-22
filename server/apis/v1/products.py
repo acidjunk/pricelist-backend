@@ -156,8 +156,6 @@ class ProductResource(Resource):
         else:
             item.prices = []
 
-
-
         item.images_amount = 0
         for i in [1, 2, 3, 4, 5, 6]:
             if getattr(item, f"image_{i}"):

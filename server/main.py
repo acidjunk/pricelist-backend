@@ -21,6 +21,7 @@ from database import (
     Kind,
     KindToFlavor,
     KindToTag,
+    MainCategory,
     Order,
     Price,
     Role,
@@ -30,7 +31,6 @@ from database import (
     User,
     db,
     user_datastore,
-    MainCategory,
 )
 from flask import Flask, url_for
 from flask_admin import Admin
