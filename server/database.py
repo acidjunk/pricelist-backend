@@ -128,6 +128,7 @@ class Category(db.Model):
         "main_category_id", UUID(as_uuid=True), ForeignKey("main_categories.id"), nullable=True, index=True
     )
     main_category = db.relationship("MainCategory", lazy=True)
+    color = Column(String(20), default="#376E1A")
     name = Column(String(255))
     name_en = Column(String(255), nullable=True)
     icon = Column(String(60), nullable=True)
