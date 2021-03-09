@@ -308,7 +308,7 @@ def test_price_rules():
             "quantity": 1,
         },
         {
-            "description": "1 joint",
+            "description": "joint",
             "price": 6,
             "kind_id": "a99f677f-14dc-4d67-9d41-ff3e85dd09fc",
             "kind_name": "Mega Joint",
@@ -318,3 +318,4 @@ def test_price_rules():
             "quantity": 1,
         },
     ]
+    assert get_price_rules_total(order_info) == 5.4

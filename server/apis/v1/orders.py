@@ -95,7 +95,7 @@ def get_price_rules_total(order_items):
     JOINT = 0.4
 
     # Todo: add correct order line for 0.5 and 2.5
-    prices = {"0,5 gram": 0.5, "1 gram": 1, "2,5 gram": 2.5, "5 gram": 5, "1 joint": JOINT}
+    prices = {"0,5 gram": 0.5, "1 gram": 1, "2,5 gram": 2.5, "5 gram": 5, "joint": JOINT}
     total = 0
     for item in order_items:
         if item["description"] in prices:
@@ -189,6 +189,7 @@ class OrderResourceList(Resource):
 
         # 5 gram check
         total_cannabis = get_price_rules_total(payload["order_info"])
+        logger.info("Checked order weight", weight=total_cannabis)
         if total_cannabis > 5:
             abort(400, "MAX_5_GRAMS_ALLOWED")
 
