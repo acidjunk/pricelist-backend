@@ -17,6 +17,7 @@ from flask_login import current_user
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 from sqlalchemy.orm import contains_eager, defer
+from utils import validate_uuid4
 
 logger = structlog.get_logger(__name__)
 
@@ -80,7 +81,17 @@ order_serializer_with_shop_names = {
 }
 
 order_response_marshaller = api.model(
-    "ShortOrderResponse", {"id": fields.String, "customer_order_id": fields.Integer, "total": fields.Float}
+    "ShortOrderResponse",
+    {
+        "id": fields.String,
+        "customer_order_id": fields.Integer,
+        "total": fields.Float,
+        "status": fields.String,
+        "created_at": fields.DateTime,
+        "completed_at": fields.DateTime,
+        "table_id": fields.String,
+        "table_name": fields.String,
+    },
 )
 
 
@@ -254,3 +265,33 @@ class OrderResource(Resource):
             item.completed_by = current_user.id
         _ = update(item, api.payload)
         return "", 204
+
+
+@api.route("/check/<ids>")
+@api.doc("Check order details.")
+class OrderResource(Resource):
+    @marshal_with(order_response_marshaller)
+    def get(self, ids):
+        """List Order"""
+        id_list = ids.split(",")
+
+        # Validate input
+        for index, id in enumerate(id_list):
+            if not validate_uuid4(id):
+                abort(400, f"ID {index+1} is not valid")
+
+        if len(id_list) > 10:
+            abort(400, "Max 10 orders")
+
+        # Build response
+        items = []
+        for id in id_list:
+            item = load(Order, id)
+            item.table_name = item.table.name
+            items.append(item)
+
+        for item in items:
+            if item.shop_id != items[0].shop_id:
+                abort(400, "All ID's should belong to one shop")
+
+        return items, 200

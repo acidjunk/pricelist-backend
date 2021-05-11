@@ -132,7 +132,7 @@ class ShopResource(Resource):
             ShopToPrice.query.filter_by(shop_id=item.id)
             .join(ShopToPrice.price)
             .join(ShopToPrice.category)
-            .order_by(Category.name, Price.internal_product_id)
+            .order_by(Category.name, Price.piece, Price.joint, Price.one, Price.five, Price.half, Price.two_five)
             .all()
         )
         item.prices = [
