@@ -157,7 +157,7 @@ class ShopResource(Resource):
                 "kind_id": pr.kind_id,
                 "kind_image": pr.kind.image_1 if pr.kind_id else None,
                 "kind_name": pr.kind.name if pr.kind_id else None,
-                "kind_strains": [strain.strain for strain in pr.kind.kind_to_strains] if pr.kind_id else [],
+                "strains": [strain.strain for strain in pr.kind.kind_to_strains] if pr.kind_id else [],
                 "kind_short_description_nl": pr.kind.short_description_nl if pr.kind_id else None,
                 "kind_short_description_en": pr.kind.short_description_en if pr.kind_id else None,
                 "kind_c": pr.kind.c if pr.kind_id else None,

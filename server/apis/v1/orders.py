@@ -286,9 +286,10 @@ class OrderResource(Resource):
         # Build response
         items = []
         for id in id_list:
-            item = load(Order, id)
-            item.table_name = item.table.name
-            items.append(item)
+            item = load(Order, id, allow_404=True)
+            if item:
+                item.table_name = item.table.name
+                items.append(item)
 
         for item in items:
             if item.shop_id != items[0].shop_id:
