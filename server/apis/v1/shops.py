@@ -40,7 +40,7 @@ price_fields = {
     "main_category_order_number": fields.Integer,
     "kind_id": fields.String,
     "kind_image": fields.String,
-    "kind_strains": fields.Nested(strain_fields),
+    "strains": fields.Nested(strain_fields),
     "kind_name": fields.String,
     "kind_short_description_nl": fields.String,
     "kind_short_description_en": fields.String,

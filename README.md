@@ -19,6 +19,12 @@ source venv/bin/activate
 pip install -r requirements/all.txt
 ```
 
+## When deploying with zappa
+
+Currently, the best version to use is python37
+
+## Configuration
+
 The project relies on an "env" file to set ENVIRONMENT vars like the correct DB settings etc. An Example env file:
 
 ```
