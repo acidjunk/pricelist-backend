@@ -26,6 +26,7 @@ image_serializer = api.model(
     {
         "id": fields.String(required=True),
         "name": fields.String(required=True),
+        "shop_id": fields.String(required=True),
         "image_1": fields.String(required=True, description="File Name 1"),
         "image_2": fields.String(required=True, description="File Name 2"),
     },
@@ -96,6 +97,7 @@ class CategoryImageResource(Resource):
                 category_update[image_col] = name
 
         if category_update:
+            category_update["shop_id"] = item.shop_id
             item = update(item, category_update)
 
         return item, 201

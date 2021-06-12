@@ -148,6 +148,7 @@ class ShopsToPricesResourceList(Resource):
         shop_to_price = ShopToPrice(
             id=str(uuid.uuid4()),
             active=data["active"] if data.get("active") else False,
+            new=data["new"] if data.get("new") else False,
             kind=kind,
             product=product,
             category=category,
