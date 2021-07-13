@@ -8,6 +8,7 @@ from apis.helpers import (
     load,
     name_file,
     query_with_filters,
+    save,
     update,
     upload_file,
 )
@@ -32,7 +33,6 @@ image_serializer = api.model(
     },
 )
 
-
 parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
 parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
@@ -41,6 +41,8 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 file_upload = reqparse.RequestParser()
 file_upload.add_argument("image_1", type=FileStorage, location="files", help="image_1")
 file_upload.add_argument("image_2", type=FileStorage, location="files", help="image_2")
+
+delete_serializer = api.model("Category", {"image": fields.String(required=True)})
 
 
 @api.route("/")
@@ -99,5 +101,22 @@ class CategoryImageResource(Resource):
         if category_update:
             category_update["shop_id"] = item.shop_id
             item = update(item, category_update)
+
+        return item, 201
+
+
+@api.route("/delete/<id>")
+@api.doc("Image delete operations.")
+class CategoryImageDeleteResource(Resource):
+    @api.expect(delete_serializer)
+    @marshal_with(image_serializer)
+    def put(self, id):
+        image_cols = ["image_1", "image_2"]
+        item = load(Category, id)
+
+        image = api.payload["image"]
+        if image in image_cols:
+            setattr(item, image, "")
+            save(item)
 
         return item, 201

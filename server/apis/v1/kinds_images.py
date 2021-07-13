@@ -8,6 +8,7 @@ from apis.helpers import (
     load,
     name_file,
     query_with_filters,
+    save,
     update,
     upload_file,
 )
@@ -48,6 +49,9 @@ file_upload.add_argument("image_3", type=FileStorage, location="files", help="im
 file_upload.add_argument("image_4", type=FileStorage, location="files", help="image_4")
 file_upload.add_argument("image_5", type=FileStorage, location="files", help="image_5")
 file_upload.add_argument("image_6", type=FileStorage, location="files", help="image_6")
+
+
+delete_serializer = api.model("Kind", {"image": fields.String(required=True)})
 
 
 @api.route("/")
@@ -109,5 +113,22 @@ class KindImageResource(Resource):
             )
             kind_update["modified_at"] = datetime.utcnow()
             item = update(item, kind_update)
+
+        return item, 201
+
+
+@api.route("/delete/<id>")
+@api.doc("Image delete operations.")
+class KindImageDeleteResource(Resource):
+    @api.expect(delete_serializer)
+    @marshal_with(image_serializer)
+    def put(self, id):
+        image_cols = ["image_1", "image_2", "image_3", "image_4", "image_5", "image_6"]
+        item = load(Kind, id)
+
+        image = api.payload["image"]
+        if image in image_cols:
+            setattr(item, image, "")
+            save(item)
 
         return item, 201
