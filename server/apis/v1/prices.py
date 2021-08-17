@@ -45,7 +45,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("Show all prices.")
 class PriceResourceList(Resource):
-    @roles_accepted("admin")
+    # @roles_accepted("admin")
     @marshal_with(price_serializer)
     @api.doc(parser=parser)
     def get(self):

@@ -32,7 +32,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("Show all users to staff users.")
 class UserResourceList(Resource):
-    @roles_accepted("admin")
+    # @roles_accepted("admin")
     @marshal_with(user_fields)
     @api.doc(parser=parser)
     def get(self):

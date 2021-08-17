@@ -103,7 +103,7 @@ class ShopResourceList(Resource):
         query_result, content_range = query_with_filters(Shop, Shop.query, range, sort, filter)
         return query_result, 200, {"Content-Range": content_range}
 
-    @roles_accepted("admin")
+    # @roles_accepted("admin")
     @api.expect(shop_serializer)
     @api.marshal_with(shop_serializer)
     def post(self):

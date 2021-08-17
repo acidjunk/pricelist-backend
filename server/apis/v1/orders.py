@@ -14,10 +14,12 @@ from apis.helpers import (
 )
 from database import Order, Shop, ShopToPrice
 from flask_login import current_user
-from flask_restx import Namespace, Resource, abort, fields, marshal_with
+from flask_restx import Namespace, Resource, abort, fields, marshal_with, marshal
 from flask_security import roles_accepted
 from sqlalchemy.orm import contains_eager, defer
-from utils import validate_uuid4
+from utils import is_ip_allowed
+from flask import request
+from allowed_ips import SHOPS_ALLOWED_IPS
 
 logger = structlog.get_logger(__name__)
 
@@ -58,7 +60,7 @@ order_serializer = api.model(
         "order_info": fields.Nested(order_info_serializer),
         # "order_info": fields.String(),
         "total": fields.Float(required=True, description="Total"),
-        "customer_order_id": fields.Integer,
+        "customer_ord   er_id": fields.Integer,
     },
 )
 
@@ -99,7 +101,6 @@ parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
 parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
 parser.add_argument("filter", location="args", help="Filter default=[]")
-
 
 def get_price_rules_total(order_items):
     """Calculate the total number of grams."""
@@ -164,11 +165,11 @@ def get_first_unavailable_product_name(order_items, shop_id):
             return item["kind_name"] if item["kind_name"] else item["product_name"]
     return None
 
-
 @api.route("/")
 @api.doc("Show all orders.")
 class OrderResourceList(Resource):
-    @roles_accepted("admin")
+
+    # @roles_accepted("admin")
     @marshal_with(order_serializer_with_shop_names)
     @api.doc(parser=parser)
     def get(self):
@@ -187,6 +188,7 @@ class OrderResourceList(Resource):
 
         return query_result, 200, {"Content-Range": content_range}
 
+
     @api.expect(order_serializer)
     @api.marshal_with(order_response_marshaller)
     def post(self):
@@ -197,8 +199,10 @@ class OrderResourceList(Resource):
         shop_id = payload.get("shop_id")
         if not shop_id:
             abort(400, "shop_id not in payload")
+        if not is_ip_allowed(request, SHOPS_ALLOWED_IPS, shop_id):
+            abort(400, "Your IP is not allowed!")
 
-        # 5 gram check
+        # 5 gram checks
         total_cannabis = get_price_rules_total(payload["order_info"])
         logger.info("Checked order weight", weight=total_cannabis)
         if total_cannabis > 5:
@@ -216,6 +220,14 @@ class OrderResourceList(Resource):
         save(order)
         return order, 201
 
+@api.route('/iptest')
+@api.doc("IP test")
+class TestIP(Resource):
+    def get(self):
+        for IP in API_ALLOWED_IPS:
+            if str(request.remote_addr).startswith(IP) or str(request.remote_addr) == IP:
+                return 'Your IP Is: Allowed because of this rule: ' + IP
+        return 'Your IP Is Not allowed ' + request.remote_addr
 
 @api.route("/<id>")
 @api.doc("Order detail operations.")
@@ -228,7 +240,7 @@ class OrderResource(Resource):
         item.shop_name = item.shop.name
         return item, 200
 
-    @roles_accepted("admin", "employee")
+    # @roles_accepted("admin", "employee")
     @api.expect(order_serializer)
     @api.marshal_with(order_serializer)
     def put(self, id):
@@ -244,14 +256,14 @@ class OrderResource(Resource):
         item = update(item, api.payload)
         return item, 201
 
-    @roles_accepted("admin")
+    # @roles_accepted("admin")
     def delete(self, id):
         """Delete Order"""
         item = load(Order, id)
         delete(item)
         return "", 204
 
-    @roles_accepted("admin", "employee")
+    # @roles_accepted("admin", "employee")
     @api.expect(order_serializer)
     def patch(self, id):
         item = load(Order, id)
