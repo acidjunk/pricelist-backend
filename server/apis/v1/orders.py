@@ -60,7 +60,7 @@ order_serializer = api.model(
         "order_info": fields.Nested(order_info_serializer),
         # "order_info": fields.String(),
         "total": fields.Float(required=True, description="Total"),
-        "customer_ord   er_id": fields.Integer,
+        "customer_order_id": fields.Integer,
     },
 )
 
@@ -101,6 +101,7 @@ parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
 parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
 parser.add_argument("filter", location="args", help="Filter default=[]")
+
 
 def get_price_rules_total(order_items):
     """Calculate the total number of grams."""
@@ -165,6 +166,7 @@ def get_first_unavailable_product_name(order_items, shop_id):
             return item["kind_name"] if item["kind_name"] else item["product_name"]
     return None
 
+
 @api.route("/")
 @api.doc("Show all orders.")
 class OrderResourceList(Resource):
@@ -187,7 +189,6 @@ class OrderResourceList(Resource):
                 order.table_name = order.table.name
 
         return query_result, 200, {"Content-Range": content_range}
-
 
     @api.expect(order_serializer)
     @api.marshal_with(order_response_marshaller)
@@ -220,14 +221,6 @@ class OrderResourceList(Resource):
         save(order)
         return order, 201
 
-@api.route('/iptest')
-@api.doc("IP test")
-class TestIP(Resource):
-    def get(self):
-        for IP in API_ALLOWED_IPS:
-            if str(request.remote_addr).startswith(IP) or str(request.remote_addr) == IP:
-                return 'Your IP Is: Allowed because of this rule: ' + IP
-        return 'Your IP Is Not allowed ' + request.remote_addr
 
 @api.route("/<id>")
 @api.doc("Order detail operations.")
