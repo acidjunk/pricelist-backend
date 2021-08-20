@@ -1,7 +1,7 @@
 import uuid
 
 import structlog
-from apis.helpers import (
+from server.apis.helpers import (
     delete,
     get_filter_from_args,
     get_range_from_args,
@@ -11,7 +11,7 @@ from apis.helpers import (
     save,
     update,
 )
-from database import Price
+from server.database import Price
 from flask_restx import Namespace, Resource, fields, marshal_with
 from flask_security import roles_accepted
 
@@ -45,7 +45,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("Show all prices.")
 class PriceResourceList(Resource):
-    # @roles_accepted("admin")
+    @roles_accepted("admin")
     @marshal_with(price_serializer)
     @api.doc(parser=parser)
     def get(self):

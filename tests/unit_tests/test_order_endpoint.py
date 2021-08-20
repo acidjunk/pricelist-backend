@@ -1,13 +1,16 @@
 from unittest import mock
 
-from apis.v1.orders import get_price_rules_total
-from database import Order
+import structlog
+
+from server.apis.v1.orders import get_price_rules_total
+from server.database import Order
+
+logger = structlog.get_logger(__name__)
 
 
 def test_order_list(client, shop_with_orders):
     with mock.patch("flask_security.decorators._check_token", return_value=True):
         with mock.patch("flask_principal.Permission.can", return_value=True):
-
             response = client.get(f"/v1/orders", follow_redirects=True)
             assert response.status_code == 200
             assert len(response.json) == 2
@@ -16,13 +19,24 @@ def test_order_list(client, shop_with_orders):
 def test_mixed_order_list(client, shop_with_mixed_orders):
     with mock.patch("flask_security.decorators._check_token", return_value=True):
         with mock.patch("flask_principal.Permission.can", return_value=True):
-
             response = client.get(f"/v1/orders", follow_redirects=True)
             assert response.status_code == 200
             assert len(response.json) == 2
 
 
-def test_create_order(client, price_1, price_2, kind_1, kind_2, shop_with_products):
+def test_create_order_ip_not_allowed(client, shop_with_whitelist):
+    data = {
+        "shop_id": str(shop_with_whitelist.id),
+        "total": 24.0,  # 2x 1 gram of 10,- + 1 joint of 4
+        "notes": "Nice one",
+        "order_info": "",
+    }
+
+    response = client.post(f"/v1/orders", json=data, follow_redirects=True)
+    assert response.status_code == 400
+
+
+def test_create_order_shop_without_whitelist(client, price_1, price_2, kind_1, kind_2, shop_with_products):
     items = [
         {
             "description": "1 gram",
@@ -47,7 +61,9 @@ def test_create_order(client, price_1, price_2, kind_1, kind_2, shop_with_produc
         "notes": "Nice one",
         "order_info": items,
     }
+
     response = client.post(f"/v1/orders", json=data, follow_redirects=True)
+
     assert response.status_code == 201
     assert response.json["customer_order_id"] == 1
     assert response.json["total"] == 24.0

@@ -2,7 +2,7 @@ import datetime
 import uuid
 
 import structlog
-from apis.helpers import (
+from server.apis.helpers import (
     delete,
     get_filter_from_args,
     get_range_from_args,
@@ -12,14 +12,14 @@ from apis.helpers import (
     save,
     update,
 )
-from database import Order, Shop, ShopToPrice
+from server.database import Order, Shop, ShopToPrice
 from flask_login import current_user
-from flask_restx import Namespace, Resource, abort, fields, marshal_with, marshal
+from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 from sqlalchemy.orm import contains_eager, defer
-from utils import is_ip_allowed
+from server.utils import is_ip_allowed
 from flask import request
-from allowed_ips import SHOPS_ALLOWED_IPS
+from server.allowed_ips import SHOPS_ALLOWED_IPS
 
 logger = structlog.get_logger(__name__)
 
@@ -194,12 +194,14 @@ class OrderResourceList(Resource):
     @api.marshal_with(order_response_marshaller)
     def post(self):
         """New Order"""
+        print(request.__dict__)
         payload = api.payload
         if payload.get("customer_order_id"):
             del payload["customer_order_id"]
         shop_id = payload.get("shop_id")
         if not shop_id:
             abort(400, "shop_id not in payload")
+            pass
         if not is_ip_allowed(request, SHOPS_ALLOWED_IPS, shop_id):
             abort(400, "Your IP is not allowed!")
 

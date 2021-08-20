@@ -4,7 +4,7 @@ from typing import Union
 from uuid import UUID
 
 import qrcode
-from database import Price, db
+from server.database import Price, db
 
 
 def generate_qr_image(url="www.google.com"):
@@ -90,7 +90,7 @@ def validate_uuid4(uuid_string):
 
 
 def is_ip_allowed(request, shops_IP_whitelist, shop_id):
-    if shop_id in shops_IP_whitelist:
+    if shops_IP_whitelist.get(shop_id):
         for IP in shops_IP_whitelist[shop_id]:
             if str(request.remote_addr) == IP:
                 # IP is in shop's whitelist -> IP is allowed

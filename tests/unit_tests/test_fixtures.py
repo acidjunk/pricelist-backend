@@ -1,6 +1,6 @@
 import uuid
 
-from database import Price, Tag, db
+from server.database import Price, Tag, db
 
 
 def test_price(app, price_1):

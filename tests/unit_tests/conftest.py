@@ -7,7 +7,6 @@ from contextlib import closing
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import make_url
-
 from server.database import (
     Category,
     Flavor,
@@ -80,7 +79,7 @@ def app(database):
     """
     Create a Flask app context for the tests.
     """
-    from main import app
+    from server.main import app
 
     with app.app_context():
         db.init_app(app)
@@ -198,6 +197,14 @@ def shop_1():
 @pytest.fixture
 def shop_2():
     fixture = Shop(id=str(uuid.uuid4()), name="Head Shop", description="Shop description 2")
+    db.session.add(fixture)
+    db.session.commit()
+    return fixture
+
+
+@pytest.fixture
+def shop_with_whitelist():
+    fixture = Shop(id="f5054538-d739-4b24-aaeb-db096d09279a", name="Head Shop", description="Shop description 2")
     db.session.add(fixture)
     db.session.commit()
     return fixture

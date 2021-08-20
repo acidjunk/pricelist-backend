@@ -4,7 +4,7 @@ import os
 import click
 import flask
 import structlog
-from admin_views import (
+from server.admin_views import (
     BaseAdminView,
     CategoryAdminView,
     KindAdminView,
@@ -14,8 +14,8 @@ from admin_views import (
     ShopAdminView,
     UserAdminView,
 )
-from apis import api
-from database import (
+from server.apis import api
+from server.database import (
     Category,
     Flavor,
     Kind,
@@ -40,9 +40,9 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_security import Security, user_registered
-from security import ExtendedJSONRegisterForm, ExtendedRegisterForm
-from utils import generate_qr_image, import_prices
-from version import VERSION
+from server.security import ExtendedJSONRegisterForm, ExtendedRegisterForm
+from server.utils import generate_qr_image, import_prices
+from server.version import VERSION
 
 logger = structlog.get_logger(__name__)
 

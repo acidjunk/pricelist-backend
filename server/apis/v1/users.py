@@ -1,6 +1,6 @@
 import structlog
-from apis.helpers import get_filter_from_args, get_range_from_args, get_sort_from_args, query_with_filters
-from database import User
+from server.apis.helpers import get_filter_from_args, get_range_from_args, get_sort_from_args, query_with_filters
+from server.database import User
 from flask_login import current_user
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import auth_token_required, roles_accepted
@@ -32,7 +32,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("Show all users to staff users.")
 class UserResourceList(Resource):
-    # @roles_accepted("admin")
+    @roles_accepted("admin")
     @marshal_with(user_fields)
     @api.doc(parser=parser)
     def get(self):

@@ -1,7 +1,7 @@
 import uuid
 from unittest import mock
 
-from database import Kind, Tag, db
+from server.database import Kind, Tag, db
 
 
 def test_add_tag_to_kind(client):
