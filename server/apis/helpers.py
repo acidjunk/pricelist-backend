@@ -3,6 +3,7 @@ import os
 from ast import literal_eval
 from datetime import datetime
 from typing import Dict, List, Optional
+from uuid import UUID
 
 import boto3
 import structlog
@@ -10,6 +11,8 @@ from database import Shop, db
 from flask_restx import abort
 from sqlalchemy import String, cast, or_
 from sqlalchemy.sql import expression
+
+from utils import validate_uuid4
 
 s3 = boto3.resource(
     "s3",
@@ -76,6 +79,9 @@ def save(item):
 def load(model, id, fields=None, allow_404=False):
     if fields is None:
         fields = []
+
+    if not validate_uuid4(id) and "uuid.UUID" not in str(type(id)):
+        abort(404, f"Record id={id} not found")
 
     if not fields:  # query "all" fields:
         item = model.query.filter_by(id=id).first()

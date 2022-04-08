@@ -63,3 +63,10 @@ Test login stuff from CLI:
 ```bash
 PYTHONPATH=. PASSWORD=yourpass EMAIL=admin@example.com python client_examples/login.py
 ```
+
+## Deploy notes
+
+Python 3.8 for now.
+
+Take care to manually install psycopg-binary as described in improviser README.md
+Note: A list of exact deps is avail in `requirements/`

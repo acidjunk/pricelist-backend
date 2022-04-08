@@ -73,7 +73,6 @@ def validate_uuid4(uuid_string):
     to the UUID() call, otherwise any 32-character
     hex string is considered valid.
     """
-
     try:
         val = UUID(uuid_string, version=4)
     except ValueError:
