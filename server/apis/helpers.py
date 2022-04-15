@@ -231,7 +231,7 @@ def invalidateShopCache(shop_id):
             InvocationType='RequestResponse'
         )
     except Exception as e:
-        logger.warning("Websocket exception", exception=e)
+        logger.warning("Websocket exception", exception=str(e))
 
     try:
         save(item)

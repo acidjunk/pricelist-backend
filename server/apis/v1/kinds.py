@@ -42,7 +42,7 @@ kind_serializer = api.model(
 
 price_fields = {
     "id": fields.String,
-    "internal_product_id": fields.Integer,
+    "internal_product_id": fields.String,
     "active": fields.Boolean,
     "new": fields.Boolean,
     "one": fields.Float,

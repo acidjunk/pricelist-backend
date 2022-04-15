@@ -24,7 +24,7 @@ strain_fields = {"name": fields.String}
 
 price_fields = {
     "id": fields.String,
-    "internal_product_id": fields.Integer,
+    "internal_product_id": fields.String,
     "active": fields.Boolean,
     "new": fields.Boolean,
     "category_id": fields.String,
