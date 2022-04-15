@@ -11,7 +11,6 @@ from database import Shop, db
 from flask_restx import abort
 from sqlalchemy import String, cast, or_
 from sqlalchemy.sql import expression
-
 from utils import validate_uuid4
 
 s3 = boto3.resource(
@@ -19,6 +18,13 @@ s3 = boto3.resource(
     aws_access_key_id=os.getenv("IMAGE_S3_ACCESS_KEY_ID"),
     aws_secret_access_key=os.getenv("IMAGE_S3_SECRET_ACCESS_KEY"),
 )
+
+sendMessageLambda = boto3.client(
+    "lambda",
+    aws_access_key_id=os.getenv("LAMBDA_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("LAMBDA_SECRET_ACCESS_KEY")
+)
+
 logger = structlog.get_logger(__name__)
 
 
@@ -219,6 +225,14 @@ def name_file(column_name, record_name, image_name=""):
 def invalidateShopCache(shop_id):
     item = load(Shop, shop_id)
     item.modified_at = datetime.utcnow()
+    try:
+        sendMessageLambda.invoke(
+            FunctionName="sendMessage",
+            InvocationType='RequestResponse'
+        )
+    except Exception as e:
+        logger.warning("Websocket exception", exception=e)
+
     try:
         save(item)
     except Exception as e:
