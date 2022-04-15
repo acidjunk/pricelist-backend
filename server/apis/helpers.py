@@ -19,6 +19,13 @@ s3 = boto3.resource(
     aws_access_key_id=os.getenv("IMAGE_S3_ACCESS_KEY_ID"),
     aws_secret_access_key=os.getenv("IMAGE_S3_SECRET_ACCESS_KEY"),
 )
+
+sendMessageLambda = boto3.client(
+    "lambda",
+    aws_access_key_id=os.getenv("LAMBDA_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("LAMBDA_SECRET_ACCESS_KEY")
+)
+
 logger = structlog.get_logger(__name__)
 
 
@@ -80,8 +87,8 @@ def load(model, id, fields=None, allow_404=False):
     if fields is None:
         fields = []
 
-    if not validate_uuid4(id) and "uuid.UUID" not in str(type(id)):
-        abort(404, f"Record id={id} not found")
+    # if not validate_uuid4(id) and "uuid.UUID" not in str(type(id)):
+    #     abort(404, f"Record id={id} not found")
 
     if not fields:  # query "all" fields:
         item = model.query.filter_by(id=id).first()
@@ -223,3 +230,12 @@ def invalidateShopCache(shop_id):
         save(item)
     except Exception as e:
         abort(500, f"Error: {e}")
+    else:
+        try:
+            sendMessageLambda.invoke(
+                FunctionName="sendMessage",
+                InvocationType='RequestResponse'
+            )
+        except Exception as e:
+            abort(500, f"Error: {e}")
+
