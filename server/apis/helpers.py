@@ -80,8 +80,8 @@ def load(model, id, fields=None, allow_404=False):
     if fields is None:
         fields = []
 
-    if not validate_uuid4(id) and "uuid.UUID" not in str(type(id)):
-        abort(404, f"Record id={id} not found")
+    # if "uuid.UUID" not in str(type(id)) or not validate_uuid4(id):
+    #     abort(404, f"Record id={id} not found")
 
     if not fields:  # query "all" fields:
         item = model.query.filter_by(id=id).first()
