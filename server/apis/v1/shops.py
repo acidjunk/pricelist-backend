@@ -82,6 +82,8 @@ shop_serializer_with_prices = {
 }
 
 shop_hash_fields = {"modified_at": fields.DateTime()}
+shop_last_completed_order = {"last_completed_order": fields.String()}
+shop_last_pending_order = {"last_pending_order": fields.String()}
 
 parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
@@ -117,6 +119,26 @@ class ShopResourceList(Resource):
 @api.doc("Shop cache status so clients can determine if the cash should be invalidated.")
 class ShopCacheResource(Resource):
     @marshal_with(shop_hash_fields)
+    def get(self, id):
+        """Show date of last change in data that could be visible in this shop"""
+        item = load(Shop, id)
+        return item, 200
+
+
+@api.route("/last-completed-order/<id>")
+@api.doc("Shop cache status so clients can determine if the cash should be invalidated.")
+class ShopLastCompletedOrderResource(Resource):
+    @marshal_with(shop_last_completed_order)
+    def get(self, id):
+        """Show date of last change in data that could be visible in this shop"""
+        item = load(Shop, id)
+        return item, 200
+
+
+@api.route("/last-pending-order/<id>")
+@api.doc("Shop cache status so clients can determine if the cash should be invalidated.")
+class ShopLastPendingOrderResource(Resource):
+    @marshal_with(shop_last_pending_order)
     def get(self, id):
         """Show date of last change in data that could be visible in this shop"""
         item = load(Shop, id)

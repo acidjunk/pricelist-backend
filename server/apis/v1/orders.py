@@ -11,6 +11,8 @@ from apis.helpers import (
     query_with_filters,
     save,
     update,
+    invalidateCompletedOrdersCache,
+    invalidatePendingOrdersCache
 )
 from database import Order, Shop, ShopToPrice
 from flask_login import current_user
@@ -212,8 +214,10 @@ class OrderResourceList(Resource):
         shop = load(Shop, str(shop_id))  # also handles 404 when shop can't be found
         payload["customer_order_id"] = Order.query.filter_by(shop_id=str(shop.id)).count() + 1
         # Todo: recalculate total and use it as a checksum for the payload
-        order = Order(id=str(uuid.uuid4()), **payload)
+        order_id = str(uuid.uuid4())
+        order = Order(id=order_id, **payload)
         save(order)
+        invalidatePendingOrdersCache(order_id)
         return order, 201
 
 
@@ -264,6 +268,7 @@ class OrderResource(Resource):
             item.completed_at = datetime.datetime.utcnow()
             item.completed_by = current_user.id
         _ = update(item, api.payload)
+        invalidateCompletedOrdersCache(item.id)
         return "", 204
 
 
