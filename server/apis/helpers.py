@@ -232,6 +232,7 @@ def sendMessageToWebSocketServer(payload):
             InvocationType='RequestResponse',
             Payload=json.dumps(payload)
         )
+        logger.info("Sending websocket message")
     except Exception as e:
         logger.warning("Websocket exception", exception=str(e))
 
