@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 from ast import literal_eval
 from datetime import datetime
@@ -12,6 +13,8 @@ from flask_restx import abort
 from sqlalchemy import String, cast, or_
 from sqlalchemy.sql import expression
 from utils import validate_uuid4
+
+from database import Order
 
 s3 = boto3.resource(
     "s3",
@@ -222,18 +225,47 @@ def name_file(column_name, record_name, image_name=""):
     return name
 
 
-def invalidateShopCache(shop_id):
-    item = load(Shop, shop_id)
-    item.modified_at = datetime.utcnow()
+def sendMessageToWebSocketServer(payload):
     try:
         sendMessageLambda.invoke(
             FunctionName="sendMessage",
-            InvocationType='RequestResponse'
+            InvocationType='RequestResponse',
+            Payload=json.dumps(payload)
         )
     except Exception as e:
         logger.warning("Websocket exception", exception=str(e))
 
+
+def invalidateShopCache(shop_id):
+    item = load(Shop, shop_id)
+    item.modified_at = datetime.utcnow()
+    payload = {"connectionType": "shop", "shopId": str(shop_id)}
+    sendMessageToWebSocketServer(payload)
     try:
         save(item)
+    except Exception as e:
+        abort(500, f"Error: {e}")
+
+
+def invalidateCompletedOrdersCache(order_id):
+    item = load(Order, order_id)
+    shop = load(Shop, item.shop_id)
+    shop.last_completed_order = order_id
+    payload = {"connectionType": "completed_orders", "shopId": str(shop.id)}
+    sendMessageToWebSocketServer(payload)
+    try:
+        save(shop)
+    except Exception as e:
+        abort(500, f"Error: {e}")
+
+
+def invalidatePendingOrdersCache(order_id):
+    item = load(Order, order_id)
+    shop = load(Shop, item.shop_id)
+    shop.last_pending_order = order_id
+    payload = {"connectionType": "pending_orders", "shopId": str(shop.id)}
+    sendMessageToWebSocketServer(payload)
+    try:
+        save(shop)
     except Exception as e:
         abort(500, f"Error: {e}")
