@@ -1,5 +1,6 @@
 import datetime
 import uuid
+from operator import or_
 
 import structlog
 from apis.helpers import (
@@ -7,12 +8,12 @@ from apis.helpers import (
     get_filter_from_args,
     get_range_from_args,
     get_sort_from_args,
+    invalidateCompletedOrdersCache,
+    invalidatePendingOrdersCache,
     load,
     query_with_filters,
     save,
     update,
-    invalidateCompletedOrdersCache,
-    invalidatePendingOrdersCache
 )
 from database import Order, Shop, ShopToPrice
 from flask_login import current_user
@@ -270,6 +271,52 @@ class OrderResource(Resource):
         _ = update(item, api.payload)
         invalidateCompletedOrdersCache(item.id)
         return "", 204
+
+
+@api.route("/shop/<shop_id>/pending")
+@api.doc("Show all pending orders per shop.")
+class PendingOrderResourceList(Resource):
+    @roles_accepted("admin")
+    @marshal_with(order_serializer_with_shop_names)
+    @api.doc(parser=parser)
+    def get(self, shop_id):
+        """List Orders"""
+        args = parser.parse_args()
+        range = get_range_from_args(args)
+        sort = get_sort_from_args(args, "created_at", default_sort_order="DESC")
+        filter = get_filter_from_args(args)
+
+        query = Order.query.filter(Order.shop_id == shop_id).filter(Order.status == "pending")
+        query_result, content_range = query_with_filters(Order, query, range, sort, filter)
+        for order in query_result:
+            if order.table_id:
+                order.table_name = order.table.name
+
+        return query_result, 200, {"Content-Range": content_range}
+
+
+@api.route("/shop/<shop_id>/complete")
+@api.doc("Show all complete orders per shop.")
+class CompletedOrderResourceList(Resource):
+    @roles_accepted("admin")
+    @marshal_with(order_serializer_with_shop_names)
+    @api.doc(parser=parser)
+    def get(self, shop_id):
+        """List Orders"""
+        args = parser.parse_args()
+        range = get_range_from_args(args)
+        sort = get_sort_from_args(args, "created_at", default_sort_order="DESC")
+        filter = get_filter_from_args(args)
+
+        query = Order.query.filter(Order.shop_id == shop_id).filter(or_(Order.status == "complete", Order.status == "cancelled"))
+        query_result, content_range = query_with_filters(Order, query, range, sort, filter)
+        for order in query_result:
+            if (order.status == "complete" or order.status == "cancelled") and order.completed_by:
+                order.completed_by_name = order.user.first_name
+            if order.table_id:
+                order.table_name = order.table.name
+
+        return query_result, 200, {"Content-Range": content_range}
 
 
 @api.route("/check/<ids>")
