@@ -8,7 +8,7 @@ from uuid import UUID
 
 import boto3
 import structlog
-from database import Shop, db
+from server.database import Shop, db
 from flask_restx import abort
 from sqlalchemy import String, cast, or_
 from sqlalchemy.sql import expression

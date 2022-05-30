@@ -1,6 +1,6 @@
 import uuid
 
-from apis.helpers import (
+from server.apis.helpers import (
     delete,
     get_filter_from_args,
     get_range_from_args,
@@ -10,7 +10,7 @@ from apis.helpers import (
     save,
     update,
 )
-from database import Flavor, Kind, KindToFlavor
+from server.database import Flavor, Kind, KindToFlavor
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 

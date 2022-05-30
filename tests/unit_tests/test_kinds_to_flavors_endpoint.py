@@ -1,7 +1,6 @@
 import uuid
 from unittest import mock
-
-from database import Flavor, Kind, db
+from server.database import Flavor, Kind, db
 
 
 def test_add_flavor_to_kind(client):

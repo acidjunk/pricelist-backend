@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 import structlog
-from apis.helpers import (
+from server.apis.helpers import (
     delete,
     get_filter_from_args,
     get_range_from_args,
@@ -12,7 +12,7 @@ from apis.helpers import (
     save,
     update,
 )
-from database import Product
+from server.database import Product
 from flask_restx import Namespace, Resource, fields, marshal_with
 from flask_security import roles_accepted
 
@@ -184,7 +184,7 @@ class ProductResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Product Delete """
+        """Product Delete"""
         item = load(Product, id)
         delete(item)
         return "", 204

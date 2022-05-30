@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import structlog
-from apis.helpers import (
+from server.apis.helpers import (
     get_filter_from_args,
     get_range_from_args,
     get_sort_from_args,
@@ -12,7 +12,7 @@ from apis.helpers import (
     update,
     upload_file,
 )
-from database import Category
+from server.database import Category
 from flask import request
 from flask_restx import Namespace, Resource, fields, marshal_with, reqparse
 from flask_security import roles_accepted
@@ -59,12 +59,7 @@ class CategoryImageResourceList(Resource):
         filter = get_filter_from_args(args)
 
         query_result, content_range = query_with_filters(
-            Category,
-            Category.query,
-            range,
-            sort,
-            filter,
-            quick_search_columns=["name", "image_1", "image_2"],
+            Category, Category.query, range, sort, filter, quick_search_columns=["name", "image_1", "image_2"]
         )
 
         return query_result, 200, {"Content-Range": content_range}

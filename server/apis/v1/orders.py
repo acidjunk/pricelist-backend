@@ -3,7 +3,7 @@ import uuid
 from operator import or_
 
 import structlog
-from apis.helpers import (
+from server.apis.helpers import (
     delete,
     get_filter_from_args,
     get_range_from_args,
@@ -15,12 +15,14 @@ from apis.helpers import (
     save,
     update,
 )
-from database import Order, Shop, ShopToPrice
+from server.database import Order, Shop, ShopToPrice
 from flask_login import current_user
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 from sqlalchemy.orm import contains_eager, defer
-from utils import validate_uuid4
+from server.utils import is_ip_allowed
+from flask import request
+from server.allowed_ips import SHOPS_ALLOWED_IPS
 
 logger = structlog.get_logger(__name__)
 
@@ -171,7 +173,8 @@ def get_first_unavailable_product_name(order_items, shop_id):
 @api.route("/")
 @api.doc("Show all orders.")
 class OrderResourceList(Resource):
-    @roles_accepted("admin")
+
+    # @roles_accepted("admin")
     @marshal_with(order_serializer_with_shop_names)
     @api.doc(parser=parser)
     def get(self):
@@ -194,14 +197,18 @@ class OrderResourceList(Resource):
     @api.marshal_with(order_response_marshaller)
     def post(self):
         """New Order"""
+        print(request.__dict__)
         payload = api.payload
         if payload.get("customer_order_id"):
             del payload["customer_order_id"]
         shop_id = payload.get("shop_id")
         if not shop_id:
             abort(400, "shop_id not in payload")
+            pass
+        if not is_ip_allowed(request, SHOPS_ALLOWED_IPS, shop_id):
+            abort(400, "Your IP is not allowed!")
 
-        # 5 gram check
+        # 5 gram checks
         total_cannabis = get_price_rules_total(payload["order_info"])
         logger.info("Checked order weight", weight=total_cannabis)
         if total_cannabis > 5:
@@ -233,7 +240,7 @@ class OrderResource(Resource):
         item.shop_name = item.shop.name
         return item, 200
 
-    @roles_accepted("admin", "employee")
+    # @roles_accepted("admin", "employee")
     @api.expect(order_serializer)
     @api.marshal_with(order_serializer)
     def put(self, id):
@@ -249,14 +256,14 @@ class OrderResource(Resource):
         item = update(item, api.payload)
         return item, 201
 
-    @roles_accepted("admin")
+    # @roles_accepted("admin")
     def delete(self, id):
         """Delete Order"""
         item = load(Order, id)
         delete(item)
         return "", 204
 
-    @roles_accepted("admin", "employee")
+    # @roles_accepted("admin", "employee")
     @api.expect(order_serializer)
     def patch(self, id):
         item = load(Order, id)

@@ -1,7 +1,7 @@
 import uuid
 
 import structlog
-from apis.helpers import (
+from server.apis.helpers import (
     delete,
     get_filter_from_args,
     get_range_from_args,
@@ -11,7 +11,7 @@ from apis.helpers import (
     save,
     update,
 )
-from database import Category, Price, Shop, ShopToPrice
+from server.database import Category, Price, Shop, ShopToPrice
 from flask_restx import Namespace, Resource, fields, marshal_with
 from flask_security import roles_accepted
 

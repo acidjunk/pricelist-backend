@@ -1,7 +1,6 @@
 import uuid
 from unittest import mock
-
-from database import Kind, Strain, db
+from server.database import Kind, Strain, db
 
 
 def test_add_strain_to_kind(client):
