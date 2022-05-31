@@ -4,10 +4,7 @@
 
 def test_shops_endpoint_without_auth(client, shop_1):
     response = client.get("/v1/shops", follow_redirects=True)
-    assert response.status_code == 200
-    json = response.json
-    assert len(json) == 1
-    assert json[0]["name"] == "Mississippi"
+    assert response.status_code == 403
 
 
 def test_kinds_endpoint_without_auth(client, kind_1):

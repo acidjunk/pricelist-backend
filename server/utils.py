@@ -4,7 +4,10 @@ from typing import Union
 from uuid import UUID
 
 import qrcode
+import structlog
 from database import Price, db
+
+logger = structlog.get_logger(__name__)
 
 
 def generate_qr_image(url="www.google.com"):
@@ -14,6 +17,21 @@ def generate_qr_image(url="www.google.com"):
     qr.make(fit=True)
     img = qr.make_image()
     return img
+
+
+def is_ip_allowed(request, shop):
+    allowed_ips = shop.allowed_ips
+    ip = str(request.remote_addr)
+    shop_id = str(shop.id)
+    if not allowed_ips:
+        # IP checking isn't activated
+        logger.info("IP check isn't activated for shop", shop_name=shop.name, shop_id=shop_id, ip=ip)
+        return True
+    if ip in shop.allowed_ips:
+        logger.info("IP check OK for shop", shop_name=shop.name, shop_id=shop_id, ip=ip, allowed_ips=allowed_ips)
+        return True
+    logger.warning("IP is not allowed to order", shop_name=shop.name, shop_id=shop_id, ip=ip, allowed_ips=allowed_ips)
+    return False
 
 
 def import_prices(file):

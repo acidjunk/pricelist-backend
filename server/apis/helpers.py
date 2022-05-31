@@ -8,13 +8,11 @@ from uuid import UUID
 
 import boto3
 import structlog
-from database import Shop, db
+from database import Order, Shop, db
 from flask_restx import abort
 from sqlalchemy import String, cast, or_
 from sqlalchemy.sql import expression
 from utils import validate_uuid4
-
-from database import Order
 
 s3 = boto3.resource(
     "s3",
@@ -25,7 +23,7 @@ s3 = boto3.resource(
 sendMessageLambda = boto3.client(
     "lambda",
     aws_access_key_id=os.getenv("LAMBDA_ACCESS_KEY_ID"),
-    aws_secret_access_key=os.getenv("LAMBDA_SECRET_ACCESS_KEY")
+    aws_secret_access_key=os.getenv("LAMBDA_SECRET_ACCESS_KEY"),
 )
 
 logger = structlog.get_logger(__name__)
@@ -228,9 +226,7 @@ def name_file(column_name, record_name, image_name=""):
 def sendMessageToWebSocketServer(payload):
     try:
         sendMessageLambda.invoke(
-            FunctionName="sendMessage",
-            InvocationType='RequestResponse',
-            Payload=json.dumps(payload)
+            FunctionName="sendMessage", InvocationType="RequestResponse", Payload=json.dumps(payload)
         )
         logger.info("Sending websocket message")
     except Exception as e:

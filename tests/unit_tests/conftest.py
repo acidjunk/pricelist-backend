@@ -22,6 +22,7 @@ from server.database import (
     Shop,
     ShopToPrice,
     Strain,
+    Table,
     Tag,
     User,
     db,
@@ -334,7 +335,16 @@ def product_1():
 
 
 @pytest.fixture
-def shop_with_products(shop_1, kind_1, kind_2, price_1, price_2, price_3, product_1):
+def table_1(shop_1):
+    fixture_id = str(uuid.uuid4())
+    fixture = Table(id=fixture_id, shop_id=shop_1.id, name="table_1")
+    db.session.add(fixture)
+    db.session.commit()
+    return fixture
+
+
+@pytest.fixture
+def shop_with_products(shop_1, kind_1, kind_2, price_1, price_2, price_3, product_1, table_1):
     shop_to_price1 = ShopToPrice(price_id=price_1.id, shop_id=shop_1.id, kind_id=kind_1.id)
     shop_to_price2 = ShopToPrice(price_id=price_2.id, shop_id=shop_1.id, kind_id=kind_2.id)
     shop_to_price3 = ShopToPrice(price_id=price_3.id, shop_id=shop_1.id, product_id=product_1.id)
@@ -346,7 +356,7 @@ def shop_with_products(shop_1, kind_1, kind_2, price_1, price_2, price_3, produc
 
 
 @pytest.fixture
-def shop_with_orders(shop_with_products, kind_1, kind_2, price_1, price_2):
+def shop_with_orders(shop_with_products, kind_1, kind_2, price_1, price_2, table_1):
     items = [
         {
             "description": "1 gram",
@@ -376,6 +386,7 @@ def shop_with_orders(shop_with_products, kind_1, kind_2, price_1, price_2):
     order = Order(
         id=str(uuid.uuid4()),
         shop_id=str(shop_with_products.id),
+        table_id=str(table_1.id),
         order_info=json.dumps(items),
         total=24.0,
         customer_order_id=2,
@@ -388,7 +399,7 @@ def shop_with_orders(shop_with_products, kind_1, kind_2, price_1, price_2):
 
 
 @pytest.fixture
-def shop_with_mixed_orders(shop_with_products, kind_1, kind_2, price_1, price_2, price_3, product_1):
+def shop_with_mixed_orders(shop_with_products, kind_1, kind_2, price_1, price_2, price_3, product_1, table_1):
     items = [
         {
             "description": "1 gram",
@@ -418,6 +429,7 @@ def shop_with_mixed_orders(shop_with_products, kind_1, kind_2, price_1, price_2,
     order = Order(
         id=str(uuid.uuid4()),
         shop_id=str(shop_with_products.id),
+        table_id=str(table_1.id),
         order_info=json.dumps(items),
         total=26.50,
         customer_order_id=1,
@@ -426,6 +438,7 @@ def shop_with_mixed_orders(shop_with_products, kind_1, kind_2, price_1, price_2,
     order = Order(
         id=str(uuid.uuid4()),
         shop_id=str(shop_with_products.id),
+        table_id=str(table_1.id),
         order_info=json.dumps(items),
         total=26.50,
         customer_order_id=2,

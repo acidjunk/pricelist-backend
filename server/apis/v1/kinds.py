@@ -228,7 +228,7 @@ class KindResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Kind Delete """
+        """Kind Delete"""
         item = load(Kind, id)
         delete(item)
         return "", 204

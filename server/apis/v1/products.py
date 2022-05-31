@@ -184,7 +184,7 @@ class ProductResource(Resource):
 
     @roles_accepted("admin")
     def delete(self, id):
-        """Product Delete """
+        """Product Delete"""
         item = load(Product, id)
         delete(item)
         return "", 204

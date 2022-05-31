@@ -16,11 +16,12 @@ from apis.helpers import (
     update,
 )
 from database import Order, Shop, ShopToPrice
+from flask import request
 from flask_login import current_user
 from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 from sqlalchemy.orm import contains_eager, defer
-from utils import validate_uuid4
+from utils import is_ip_allowed, validate_uuid4
 
 logger = structlog.get_logger(__name__)
 
@@ -201,6 +202,11 @@ class OrderResourceList(Resource):
         if not shop_id:
             abort(400, "shop_id not in payload")
 
+        shop = load(Shop, str(shop_id))  # also handles 404 when shop can't be found
+        if not is_ip_allowed(request, shop) and payload["table_id"] != "0999fbcd-a72b-4cc2-abbe-41ccd466cdaf":
+            # allow test table to bypass IP check if any
+            abort(400, "NOT_ON_SHOP_WIFI")
+
         # 5 gram check
         total_cannabis = get_price_rules_total(payload["order_info"])
         logger.info("Checked order weight", weight=total_cannabis)
@@ -212,13 +218,20 @@ class OrderResourceList(Resource):
         if unavailable_product_name:
             abort(400, f"{unavailable_product_name}, OUT_OF_STOCK")
 
-        shop = load(Shop, str(shop_id))  # also handles 404 when shop can't be found
         payload["customer_order_id"] = Order.query.filter_by(shop_id=str(shop.id)).count() + 1
+        payload["status"] = "pending"
+        if payload["table_id"] == "0999fbcd-a72b-4cc2-abbe-41ccd466cdaf":
+            # Test table -> flag it complete
+            payload["status"] = "complete"
         # Todo: recalculate total and use it as a checksum for the payload
         order_id = str(uuid.uuid4())
         order = Order(id=order_id, **payload)
         save(order)
-        invalidatePendingOrdersCache(order_id)
+        if payload["table_id"] == "0999fbcd-a72b-4cc2-abbe-41ccd466cdaf":
+            # Test table -> invalidate completed orders
+            invalidateCompletedOrdersCache(order_id)
+        else:
+            invalidatePendingOrdersCache(order_id)
         return order, 201
 
 
@@ -308,7 +321,9 @@ class CompletedOrderResourceList(Resource):
         sort = get_sort_from_args(args, "created_at", default_sort_order="DESC")
         filter = get_filter_from_args(args)
 
-        query = Order.query.filter(Order.shop_id == shop_id).filter(or_(Order.status == "complete", Order.status == "cancelled"))
+        query = Order.query.filter(Order.shop_id == shop_id).filter(
+            or_(Order.status == "complete", Order.status == "cancelled")
+        )
         query_result, content_range = query_with_filters(Order, query, range, sort, filter)
         for order in query_result:
             if (order.status == "complete" or order.status == "cancelled") and order.completed_by:

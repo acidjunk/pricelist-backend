@@ -92,6 +92,7 @@ class Shop(db.Model):
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow())
     last_pending_order = Column(String(255), unique=True)  # order id of last pending order for this shop (UUID)
     last_completed_order = Column(String(255), unique=True)  # order id of last completed order for this shop (UUID)
+    allowed_ips = Column(JSON)
 
     def __repr__(self):
         return self.name

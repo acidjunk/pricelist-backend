@@ -32,7 +32,7 @@ from database import (
     db,
     user_datastore,
 )
-from flask import Flask, url_for, jsonify, request
+from flask import Flask, jsonify, request, url_for
 from flask_admin import Admin
 from flask_admin import helpers as admin_helpers
 from flask_cors import CORS
@@ -209,7 +209,7 @@ def get_qr_product_image(shop_id, category_id, product_id):
 
 @app.route("/get_my_ip", methods=["GET"])
 def get_my_ip():
-    return jsonify({'ip': request.remote_addr, 'alt': request.access_route[0]}), 200
+    return jsonify({"ip": request.remote_addr, "alt": request.access_route[0]}), 200
 
 
 # @app.before_request

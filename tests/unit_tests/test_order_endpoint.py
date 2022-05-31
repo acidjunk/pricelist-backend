@@ -22,7 +22,7 @@ def test_mixed_order_list(client, shop_with_mixed_orders):
             assert len(response.json) == 2
 
 
-def test_create_order(client, price_1, price_2, kind_1, kind_2, shop_with_products):
+def test_create_order(client, price_1, price_2, kind_1, kind_2, shop_with_products, table_1):
     items = [
         {
             "description": "1 gram",
@@ -43,6 +43,7 @@ def test_create_order(client, price_1, price_2, kind_1, kind_2, shop_with_produc
     ]
     data = {
         "shop_id": str(shop_with_products.id),
+        "table_id": str(table_1.id),
         "total": 24.0,  # 2x 1 gram of 10,- + 1 joint of 4
         "notes": "Nice one",
         "order_info": items,
@@ -70,7 +71,7 @@ def test_create_order(client, price_1, price_2, kind_1, kind_2, shop_with_produc
     assert order.customer_order_id == 2
 
 
-def test_create_mixed_order(client, price_1, price_2, price_3, product_1, kind_1, kind_2, shop_with_products):
+def test_create_mixed_order(client, price_1, price_2, price_3, product_1, kind_1, kind_2, shop_with_products, table_1):
     items = [
         {
             "description": "1 gram",
@@ -99,6 +100,7 @@ def test_create_mixed_order(client, price_1, price_2, price_3, product_1, kind_1
     ]
     data = {
         "shop_id": str(shop_with_products.id),
+        "table_id": str(table_1.id),
         "total": 26.50,  # 2x 1 gram of 10,- + 1 joint of 4 + 1 cola (2.50)
         "notes": "Nice one",
         "order_info": items,
@@ -126,7 +128,7 @@ def test_create_mixed_order(client, price_1, price_2, price_3, product_1, kind_1
     assert order.customer_order_id == 2
 
 
-def test_create_order_validation(client, price_1, price_2, kind_1, kind_2, shop_with_products):
+def test_create_order_validation(client, price_1, price_2, kind_1, kind_2, shop_with_products, table_1):
     items = [
         {
             "description": "1 gram",
@@ -153,7 +155,7 @@ def test_create_order_validation(client, price_1, price_2, kind_1, kind_2, shop_
         "order_info": items,
     }
     response = client.post(f"/v1/orders", json=data, follow_redirects=True)
-    assert response.status_code == 400
+    assert response.status_code == 404
 
     # No shop_id
     data = {"total": 24.0, "notes": "Nice one", "order_info": items}  # 2x 1 gram of 10,- + 1 joint of 4

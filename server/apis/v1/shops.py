@@ -12,7 +12,7 @@ from apis.helpers import (
     update,
 )
 from database import Category, Price, Shop, ShopToPrice
-from flask_restx import Namespace, Resource, fields, marshal_with
+from flask_restx import Namespace, Resource, abort, fields, marshal_with
 from flask_security import roles_accepted
 
 logger = structlog.get_logger(__name__)
@@ -85,15 +85,64 @@ shop_hash_fields = {"modified_at": fields.DateTime()}
 shop_last_completed_order = {"last_completed_order": fields.String()}
 shop_last_pending_order = {"last_pending_order": fields.String()}
 
+ip_serializer = api.model(
+    "AllowedIp",
+    {
+        "ip": fields.String(required=True, description="Allowed IP"),
+    },
+)
+
 parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
 parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
 parser.add_argument("filter", location="args", help="Filter default=[]")
 
 
+@api.route("/allowed-ips/<id>")
+class ShopAllowedIpList(Resource):
+    @roles_accepted("admin")
+    def get(self, id):
+        item = load(Shop, id)
+        if item.allowed_ips:
+            return [ip for ip in item.allowed_ips], 200
+        else:
+            return [], 200
+
+    @roles_accepted("admin")
+    @api.expect(ip_serializer)
+    def post(self, id):
+        shop = load(Shop, id)
+        ip = api.payload["ip"]
+        if shop.allowed_ips and ip not in shop.allowed_ips:
+            # can't use append here (ORM doesn't see it)
+            shop.allowed_ips = shop.allowed_ips + [ip]
+        elif shop.allowed_ips and ip in shop.allowed_ips:
+            abort(400, "Ip already exist")
+        else:
+            shop.allowed_ips = [ip]
+        save(shop)
+        return [ip for ip in shop.allowed_ips], 201
+
+
+@api.route("/allowed-ips/<id>/remove")
+class ShopAllowedIpListRemove(Resource):
+    @roles_accepted("admin")
+    @api.expect(ip_serializer)
+    def post(self, id):
+        shop = load(Shop, id)
+        ip = api.payload["ip"]
+        if shop.allowed_ips and ip not in shop.allowed_ips:
+            abort(400, "Ip not on list")
+        elif shop.allowed_ips and ip in shop.allowed_ips:
+            shop.allowed_ips = [i for i in shop.allowed_ips if i != ip]
+        save(shop)
+        return [ip for ip in shop.allowed_ips], 201
+
+
 @api.route("/")
 @api.doc("Show all shops.")
 class ShopResourceList(Resource):
+    @roles_accepted("admin")
     @marshal_with(shop_serializer)
     def get(self):
         """List Shops"""
