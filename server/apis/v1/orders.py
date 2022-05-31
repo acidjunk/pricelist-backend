@@ -223,6 +223,8 @@ class OrderResourceList(Resource):
         if payload["table_id"] == "0999fbcd-a72b-4cc2-abbe-41ccd466cdaf":
             # Test table -> flag it complete
             payload["status"] = "complete"
+            payload["completed_at"] = datetime.datetime.utcnow()
+
         # Todo: recalculate total and use it as a checksum for the payload
         order_id = str(uuid.uuid4())
         order = Order(id=order_id, **payload)
