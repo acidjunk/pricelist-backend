@@ -21,6 +21,7 @@ logger = structlog.get_logger(__name__)
 api = Namespace("kinds", description="Kind related operations")
 
 tag_fields = {"id": fields.String, "name": fields.String, "amount": fields.Integer}
+strain_fields = {"id": fields.String, "name": fields.String}
 flavor_fields = {"id": fields.String, "name": fields.String, "icon": fields.String, "color": fields.String}
 
 kind_serializer = api.model(
@@ -69,7 +70,7 @@ kind_serializer_with_relations = {
     "tags_amount": fields.Integer("Number of tags"),
     "flavors": fields.Nested(flavor_fields),
     "flavors_amount": fields.Integer("Number of flavors"),
-    "strains": fields.Nested(tag_fields),
+    "strains": fields.Nested(strain_fields),
     "strains_amount": fields.Integer("Number of strains"),
     "images_amount": fields.Integer("Number of images"),
     "image_1": fields.String(required=True, description="File Name 1"),
