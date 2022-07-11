@@ -68,7 +68,6 @@ shop_to_price_availability_serializer = api.model(
     {"active": fields.Boolean(required=True, description="Whether a Shop to Price relation is in stock.")},
 )
 
-
 parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")
 parser.add_argument("sort", location="args", help='Sort: default=["name","ASC"]')
@@ -193,14 +192,24 @@ class ShopToPriceResource(Resource):
         # Todo increase validation -> if the update is correct
         price = Price.query.filter(Price.id == api.payload["price_id"]).first()
         shop = Shop.query.filter(Shop.id == api.payload["shop_id"]).first()
-        kind = Kind.query.filter(Kind.id == api.payload["kind_id"]).first()
-        product = Product.query.filter(Product.id == api.payload["product_id"]).first()
+        kind = Kind.query.filter(Kind.id == api.payload["kind_id"]).first() if api.payload["kind_id"] != "" else None
+        product = (
+            Product.query.filter(Product.id == api.payload["product_id"]).first()
+            if api.payload["product_id"] != ""
+            else None
+        )
 
         if not price or not shop:
             abort(400, "Price or Shop not found")
 
         if (product and kind) or not product and not kind:
             abort(400, "One Cannabis or one Horeca product has to be provided")
+
+        # Delete keys if kind or product is None so update will not fail
+        if kind is None:
+            del api.payload["kind_id"]
+        if product is None:
+            del api.payload["product_id"]
 
         # Ok we survived all that: let's save it:
         item = update(item, api.payload)
