@@ -40,6 +40,8 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_security import Security, user_registered
+
+from form import start_form
 from security import ExtendedJSONRegisterForm, ExtendedRegisterForm
 from utils import generate_qr_image, import_prices
 from version import VERSION
@@ -169,6 +171,13 @@ def get_qr_shop_image(shop_id):
     img.save(img_buf)
     img_buf.seek(0)
     return flask.send_file(img_buf, mimetype="image/png")
+
+
+@app.route("/form/<form_key>/<json_data>")
+def new_form(form_key, json_data):
+    # state = start_form("bogousfornow", user_inputs=json_data, user="Just a user")
+    state = start_form("bogusfornow", user_inputs=[], user="Just a user")
+    return state
 
 
 @app.route("/qr/shop/<shop_id>/<table_id>")
