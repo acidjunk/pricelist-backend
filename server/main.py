@@ -1,9 +1,15 @@
 import io
 import os
+import traceback
+from functools import wraps
+from http import HTTPStatus
+from typing import Callable, Union, Any, Tuple, Dict, TypeVar, cast, List, Optional
 
 import click
 import flask
 import structlog
+from pydantic_forms.exceptions import FormValidationError, FormNotCompleteError
+
 from admin_views import (
     BaseAdminView,
     CategoryAdminView,
@@ -45,6 +51,8 @@ from form import start_form
 from security import ExtendedJSONRegisterForm, ExtendedRegisterForm
 from utils import generate_qr_image, import_prices
 from version import VERSION
+
+from pydantic_forms.types import JSON
 
 logger = structlog.get_logger(__name__)
 
@@ -172,12 +180,168 @@ def get_qr_shop_image(shop_id):
     img_buf.seek(0)
     return flask.send_file(img_buf, mimetype="image/png")
 
+T = TypeVar("T")
+ResponseHeaders = Dict[str, str]
+Response = Union[T, Tuple[T, HTTPStatus], Tuple[T, HTTPStatus, ResponseHeaders]]
+ErrorState = Union[str, Exception, Tuple[str, Union[int, HTTPStatus]]]
+ErrorDict = Dict[str, Union[str, int, List[Dict[str, Any]], "InputForm", None]]
 
-@app.route("/form/<form_key>/<json_data>")
-def new_form(form_key, json_data):
+
+# Todo: move this to Flask example?
+def json_endpoint(f: Callable[..., Union[JSON, Response[JSON]]]) -> Callable[..., Union[str, Response[str]]]:
+    @wraps(f)
+    def to_json(*args: Any, **kwargs: Any) -> Union[str, Tuple[str, HTTPStatus]]:
+        result = f(*args, **kwargs)
+        if isinstance(result, tuple):
+            body, status = result
+            return jsonify(body), status
+        return jsonify(result)
+
+    return to_json
+
+
+
+class ApiException(Exception):
+    """Api Exception Class.
+
+    This is a copy of what is generated in api_clients. We use this to have consistent error handling for nso to.
+    This should conform to what is used in the api clients.
+    """
+
+    status: Optional[HTTPStatus]
+    reason: Optional[str]
+    body: Optional[str]
+    headers: Dict[str, str]
+
+    def __init__(
+        self, status: Optional[HTTPStatus] = None, reason: Optional[str] = None, http_resp: Optional[object] = None
+    ):
+        super().__init__(status, reason, http_resp)
+        if http_resp:
+            self.status = http_resp.status  # type:ignore
+            self.reason = http_resp.reason  # type:ignore
+            self.body = http_resp.data  # type:ignore
+            self.headers = http_resp.getheaders()  # type:ignore
+        else:
+            self.status = status
+            self.reason = reason
+            self.body = None
+            self.headers = {}
+
+    def __str__(self) -> str:
+        """Create custom error messages for exception."""
+        error_message = "({})\n" "Reason: {}\n".format(self.status, self.reason)
+        if self.headers:
+            error_message += f"HTTP response headers: {self.headers}\n"
+
+        if self.body:
+            error_message += f"HTTP response body: {self.body}\n"
+
+        return error_message
+
+
+def show_ex(ex: Exception, stacklimit: Optional[int] = None) -> str:
+    """
+    Show an exception, including its class name, message and (limited) stacktrace.
+
+    >>> try:
+    ...     raise Exception("Something went wrong")
+    ... except Exception as e:
+    ...     print(show_ex(e))
+    Exception: Something went wrong
+    ...
+    """
+    tbfmt = "".join(traceback.format_tb(ex.__traceback__, stacklimit))
+    return "{}: {}\n{}".format(type(ex).__name__, ex, tbfmt)
+
+
+def error_state_to_dict(err: ErrorState) -> ErrorDict:
+    """Return an ErrorDict based on the exception, string or tuple in the ErrorState.
+
+    Args:
+        err: ErrorState from a workflow or api error state
+
+    Returns:
+        An ErrorDict containing the error message a status_code and a traceback if available
+
+    """
+
+    if isinstance(err, FormValidationError):
+        return {
+            "class": type(err).__name__,
+            "error": str(err),
+            "traceback": show_ex(err),
+            "validation_errors": err.errors,  # type:ignore
+            "status_code": HTTPStatus.BAD_REQUEST,
+        }
+    elif isinstance(err, FormNotCompleteError):
+        return {
+            "class": type(err).__name__,
+            "error": str(err),
+            "traceback": show_ex(err),
+            "form": err.form,
+            "status_code": HTTPStatus.NOT_EXTENDED,
+        }
+    elif isinstance(err, Exception):
+        if is_api_exception(err):
+            err = cast(ApiException, err)
+            return {
+                "class": type(err).__name__,
+                "error": err.reason,
+                "status_code": err.status,
+                "body": err.body,
+                "headers": "\n".join(f"{k}: {v}" for k, v in err.headers.items()),
+                "traceback": show_ex(err),
+            }
+        return {"class": type(err).__name__, "error": str(err), "traceback": show_ex(err)}
+    elif isinstance(err, tuple):
+        cast(Tuple, err)
+        error, status_code = err
+        return {"error": str(error), "status_code": int(status_code)}
+    elif isinstance(err, str):
+        return {"error": err}
+    elif isinstance(err, dict) and "error" in err:  # type: ignore
+        return err
+    else:
+        raise TypeError("ErrorState  should be a tuple, exception or string")
+
+
+def is_api_exception(ex: Exception) -> bool:
+    """Test for swagger-codegen ApiException.
+
+    For each API, swagger-codegen generates a new ApiException class. These are not organized into
+    a hierarchy. Hence testing whether one is dealing with one of the ApiException classes without knowing how
+    many there are and where they are located, needs some special logic.
+
+    Args:
+        ex: the Exception to be tested.
+
+    Returns:
+        True if it is an ApiException, False otherwise.
+
+    """
+    return ex.__class__.__name__ == "ApiException"
+
+
+def show_error(err: ErrorState) -> Response[ErrorDict]:
+    error_dict = error_state_to_dict(err)
+    logger.error("Returning error dict", **error_dict)
+    status_code: HTTPStatus = error_dict.pop("status_code", HTTPStatus.INTERNAL_SERVER_ERROR)  # type: ignore
+    return error_dict, status_code
+
+
+@app.route("/forms/<form_key>", methods=["POST"])
+@json_endpoint
+def new_form(form_key):
+    logger.info("New form")
     # state = start_form("bogousfornow", user_inputs=json_data, user="Just a user")
-    state = start_form("bogusfornow", user_inputs=[], user="Just a user")
-    return state
+    print(form_key)
+
+    try:
+        state = start_form("create_ticket_form", user_inputs=[], user="Just a user")
+    except (FormValidationError, FormNotCompleteError) as e:
+        return show_error(e)
+    return state, 201
 
 
 @app.route("/qr/shop/<shop_id>/<table_id>")

@@ -14,8 +14,18 @@ def create_ticket_form(current_state: dict) -> FormGenerator:
             title = "New product"
 
         product_name: str
+        strain_name: str
 
     user_input = yield ProductForm
+
+    class Product2Form(FormPage):
+        class Config:
+            title = "Extra info"
+
+        info: str
+        long_info: bool
+
+    user_input2 = yield Product2Form
     return user_input.dict()
 
 
