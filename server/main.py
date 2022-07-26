@@ -3,13 +3,11 @@ import os
 import traceback
 from functools import wraps
 from http import HTTPStatus
-from typing import Callable, Union, Any, Tuple, Dict, TypeVar, cast, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union, cast
 
 import click
 import flask
 import structlog
-from pydantic_forms.exceptions import FormValidationError, FormNotCompleteError
-
 from admin_views import (
     BaseAdminView,
     CategoryAdminView,
@@ -46,13 +44,13 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_security import Security, user_registered
-
-from form import start_form
+from form import create_ticket_form
+from pydantic_forms.core import register_form, start_form
+from pydantic_forms.exceptions import FormNotCompleteError, FormValidationError
+from pydantic_forms.types import JSON
 from security import ExtendedJSONRegisterForm, ExtendedRegisterForm
 from utils import generate_qr_image, import_prices
 from version import VERSION
-
-from pydantic_forms.types import JSON
 
 logger = structlog.get_logger(__name__)
 
@@ -116,6 +114,7 @@ security = Security(
 )
 login_manager = LoginManager(app)
 mail = Mail()
+register_form("create_ticket_form", create_ticket_form)
 
 
 @app.cli.command("import-prices")
@@ -330,15 +329,22 @@ def show_error(err: ErrorState) -> Response[ErrorDict]:
     return error_dict, status_code
 
 
+def _get_json() -> JSON:
+    if request.is_json:
+        return request.get_json()
+    else:
+        raise ValueError("No JSON")
+
+
 @app.route("/forms/<form_key>", methods=["POST"])
 @json_endpoint
 def new_form(form_key):
     logger.info("New form")
-    # state = start_form("bogousfornow", user_inputs=json_data, user="Just a user")
-    print(form_key)
+    json_data = _get_json()
 
+    # Todo: make form key dynamic
     try:
-        state = start_form("create_ticket_form", user_inputs=[], user="Just a user")
+        state = start_form("create_ticket_form", user_inputs=json_data, user="Just a user")
     except (FormValidationError, FormNotCompleteError) as e:
         return show_error(e)
     return state, 201
