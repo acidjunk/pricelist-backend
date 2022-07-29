@@ -36,10 +36,14 @@ def create_ticket_form(current_state: dict) -> FormGenerator:
         class Config:
             title = "New product"
 
-        product_name: str
-        strain_name: str
-        strain_choice: StrainChoice
+        a: str
+        z: str
         category_choice: CategoryChoice
+        product_name: str
+        floemp: bool
+        strain_name: str
+        floemp: bool
+        strain_choice: StrainChoice
 
     user_input = yield ProductForm
 
