@@ -44,8 +44,8 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_security import Security, user_registered
-from form import create_ticket_form
-from pydantic_forms.core import register_form, start_form
+from form import create_product_form, create_strain_form
+from pydantic_forms.core import register_form, start_form, list_forms
 from pydantic_forms.exceptions import FormNotCompleteError, FormValidationError
 from pydantic_forms.types import JSON
 from security import ExtendedJSONRegisterForm, ExtendedRegisterForm
@@ -114,7 +114,8 @@ security = Security(
 )
 login_manager = LoginManager(app)
 mail = Mail()
-register_form("create_ticket_form", create_ticket_form)
+register_form("create_product_form", create_product_form)
+register_form("create_strain_form", create_strain_form)
 
 
 @app.cli.command("import-prices")
@@ -143,41 +144,22 @@ def on_user_registered(sender, user, confirm_token):
     db.session.commit()
 
 
-#
-# @login_manager.request_loader
-# def load_user_from_request(request):
-#
-#
-#
-#     token = request.headers.get('Authentication-Token')
-#     data = verify_auth_token(token, "login" )
-#     print(data)
-#
-#
-#     # if token:
-#     #     user_id = User.decode_token(token)
-#     #     print(user_id)
-#     #     1/0
-#
-#     # finally, return None if both methods did not login the user
-#     return None
-
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
 
 
-@app.route("/qr/shop/<shop_id>")
-def get_qr_shop_image(shop_id):
-    logger.info("Serving generated Shop QR images", shop_id=shop_id)
-    img_buf = io.BytesIO()
-    url = f"{app.config['FRONTEND_URI']}/shop/{shop_id}"
-    logger.debug("Shop QR URL", url=url)
-    img = generate_qr_image(url=url)
-    img.save(img_buf)
-    img_buf.seek(0)
-    return flask.send_file(img_buf, mimetype="image/png")
+# @app.route("/qr/shop/<shop_id>")
+# def get_qr_shop_image(shop_id):
+#     logger.info("Serving generated Shop QR images", shop_id=shop_id)
+#     img_buf = io.BytesIO()
+#     url = f"{app.config['FRONTEND_URI']}/shop/{shop_id}"
+#     logger.debug("Shop QR URL", url=url)
+#     img = generate_qr_image(url=url)
+#     img.save(img_buf)
+#     img_buf.seek(0)
+#     return flask.send_file(img_buf, mimetype="image/png")
+
 
 T = TypeVar("T")
 ResponseHeaders = Dict[str, str]
@@ -197,7 +179,6 @@ def json_endpoint(f: Callable[..., Union[JSON, Response[JSON]]]) -> Callable[...
         return jsonify(result)
 
     return to_json
-
 
 
 class ApiException(Exception):
@@ -342,12 +323,13 @@ def new_form(form_key):
     logger.info("New form")
     json_data = _get_json()
 
-    # Todo: make form key dynamic
-    try:
-        state = start_form("create_ticket_form", user_inputs=json_data, user="Just a user")
-    except (FormValidationError, FormNotCompleteError) as e:
-        return show_error(e)
-    return state, 201
+    if form_key in list_forms():
+        try:
+            state = start_form(form_key, user_inputs=json_data, user="Just a user")
+        except (FormValidationError, FormNotCompleteError) as e:
+            return show_error(e)
+        return state, 201
+    return None, 440
 
 
 @app.route("/qr/shop/<shop_id>/<table_id>")
