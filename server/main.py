@@ -101,6 +101,9 @@ app.config["MAIL_USE_SSL"] = True
 app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME") if os.getenv("MAIL_USERNAME") else "no-reply@example.com"
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD") if os.getenv("MAIL_PASSWORD") else "somepassword"
 
+# Needed for Forms to not mess up form order
+app.config['JSON_SORT_KEYS'] = False
+
 app.config["FRONTEND_URI"] = os.getenv("FRONTEND_URI") if os.getenv("FRONTEND_URI") else "www.example.com"
 # Todo: check if we can fix this without completely disabling it: it's only needed when login request is not via .json
 app.config["WTF_CSRF_ENABLED"] = False
@@ -245,7 +248,6 @@ def error_state_to_dict(err: ErrorState) -> ErrorDict:
         An ErrorDict containing the error message a status_code and a traceback if available
 
     """
-
     if isinstance(err, FormValidationError):
         return {
             "class": type(err).__name__,
@@ -305,7 +307,7 @@ def is_api_exception(ex: Exception) -> bool:
 
 def show_error(err: ErrorState) -> Response[ErrorDict]:
     error_dict = error_state_to_dict(err)
-    logger.error("Returning error dict", **error_dict)
+    # logger.error("Returning error dict", **error_dict)
     status_code: HTTPStatus = error_dict.pop("status_code", HTTPStatus.INTERNAL_SERVER_ERROR)  # type: ignore
     return error_dict, status_code
 
@@ -318,7 +320,7 @@ def _get_json() -> JSON:
 
 
 @app.route("/forms/<form_key>", methods=["POST"])
-@json_endpoint
+# @json_endpoint
 def new_form(form_key):
     logger.info("New form")
     json_data = _get_json()
