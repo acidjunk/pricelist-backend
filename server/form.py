@@ -29,9 +29,6 @@ def validate_strain_name(strain_name: str, values: State) -> str:
     return strain_name
 
 
-
-
-
 def create_strain_form(current_state: dict) -> FormGenerator:
     class StrainForm(FormPage):
         class Config:
@@ -56,8 +53,8 @@ class ProductType(Choice):
 def create_product_form(current_state: dict) -> FormGenerator:
     # Setup summary
     summary_fields = [
-        "a_product_name",
-        "b_product_type",
+        "product_name",
+        "product_type",
     ]
     summary_labels = ["Wiet naam", "type"]
 
@@ -92,11 +89,11 @@ def create_product_form(current_state: dict) -> FormGenerator:
         class Config:
             title = "Nieuw cannabis product"
 
-        a_product_name: str
-        b_product_type: ProductType
-        c_strain_choice: conlist(StrainChoice, min_items=1, max_items=3)
+        product_name: str
+        product_type: ProductType
+        strain_choice: conlist(StrainChoice, min_items=1, max_items=3)
         gebruiken: bool = True
-        _validate_product_name: classmethod = validator("a_product_name", allow_reuse=True)(validate_product_name)
+        _validate_product_name: classmethod = validator("product_name", allow_reuse=True)(validate_product_name)
 
     user_input = yield ProductForm
     user_input_dict = user_input.dict()
@@ -109,48 +106,8 @@ def create_product_form(current_state: dict) -> FormGenerator:
             data = summary_data(user_input_dict)
 
         summary: Summary
-        warning: str = ReadOnlyField("Je kan (nog) geen producten bewerken. Zie je een nu een 'typo' ga dan terug naar het vorige formulier en pas het aan.")
+        warning: str = ReadOnlyField("Je kan (nog) geen producten bewerken. Zie je nu een 'typo' ga dan terug naar het vorige formulier en pas het aan.")
 
     _ = yield SummaryForm
 
     return user_input_dict
-
-
-#
-# def start_form(
-#     form_key: str,
-#     user_inputs: Optional[List[State]] = None,
-#     user: str = "Just a user",  # Todo: check if we need users inside form logic?
-# ) -> State:
-#     """Setup a empty form.
-#
-#     Args:
-#         form_key: name of workflow
-#         user_inputs: List of form inputs from frontend
-#         user: User who starts this process
-#
-#     Returns:
-#         The data that the user entered into the form
-#
-#     """
-#     if user_inputs is None:
-#         # Ensure the first FormNotComplete is raised from Swagger and when a POST is done without user_inputs:
-#         user_inputs = []
-#
-#     # form = get_form(form_key)
-#
-#     # if not form:
-#     #     raise_status(HTTPStatus.NOT_FOUND, "Form does not exist")
-#
-#     # Todo: decide what we want for initial input
-#     initial_state = {
-#         "form_key": "create_ticket_form",
-#     }
-#
-#     try:
-#         state = post_form(create_ticket_form, initial_state, user_inputs)
-#     except FormValidationError:
-#         logger.exception("Validation errors", user_inputs=user_inputs)
-#         raise
-#
-#     return state
