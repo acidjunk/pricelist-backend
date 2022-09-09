@@ -320,7 +320,7 @@ def _get_json() -> JSON:
 
 
 @app.route("/forms/<form_key>", methods=["POST"])
-# @json_endpoint
+@json_endpoint
 def new_form(form_key):
     logger.info("New form")
     json_data = _get_json()
