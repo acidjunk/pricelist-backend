@@ -85,12 +85,7 @@ shop_hash_fields = {"modified_at": fields.DateTime()}
 shop_last_completed_order = {"last_completed_order": fields.String()}
 shop_last_pending_order = {"last_pending_order": fields.String()}
 
-ip_serializer = api.model(
-    "AllowedIp",
-    {
-        "ip": fields.String(required=True, description="Allowed IP"),
-    },
-)
+ip_serializer = api.model("AllowedIp", {"ip": fields.String(required=True, description="Allowed IP"),},)
 
 parser = api.parser()
 parser.add_argument("range", location="args", help="Pagination: default=[0,19]")

@@ -5,4 +5,4 @@ pytest-cov==2.7.1
 pytest-flask==1.0.0
 pytest-flask-sqlalchemy==1.0.2
 pytest-xdist==1.28.0
-requests==2.21.0
+requests==2.28.1

@@ -35,6 +35,8 @@ shop_to_price_serializer = api.model(
         "use_five": fields.Boolean(default=True, description="Use the price for 5g?"),
         "use_joint": fields.Boolean(default=True, description="Use the price for joint?"),
         "use_piece": fields.Boolean(default=True, description="Use the price for piece?"),
+        "grams_joint": fields.Float(default=0),
+        "grams_piece": fields.Float(default=0),
     },
 )
 
@@ -59,6 +61,8 @@ shop_to_price_serializer_with_prices = {
     "joint": fields.Float(description="Price for one joint"),
     "use_piece": fields.Boolean(default=True, description="Show the price for one piece?"),
     "piece": fields.Float(description="Price for one item"),
+    "grams_joint": fields.Float(default=0),
+    "grams_piece": fields.Float(default=0),
     "created_at": fields.DateTime(description="Creation date"),
     "modified_at": fields.DateTime(description="Last modification date"),
 }
@@ -124,6 +128,7 @@ class ShopsToPricesResourceList(Resource):
         if (product and kind) or not product and not kind:
             abort(400, "One Cannabis or one Horeca product has to be provided")
 
+        order_number = 0
         if kind:
             check_query = (
                 ShopToPrice.query.filter_by(shop_id=shop.id)
@@ -143,6 +148,8 @@ class ShopsToPricesResourceList(Resource):
             )
             if len(check_query) > 0:
                 abort(409, "Relation already exists")
+            amount_of_products = ShopToPrice.query.filter_by(shop_id=shop.id).filter_by(category_id=category.id).count()
+            order_number = amount_of_products + 1
 
         data = api.payload
         shop_to_price = ShopToPrice(
@@ -160,6 +167,9 @@ class ShopsToPricesResourceList(Resource):
             use_five=data["use_five"] if data.get("use_five") else False,
             use_joint=data["use_joint"] if data.get("use_joint") else False,
             use_piece=data["use_piece"] if data.get("use_piece") else False,
+            grams_joint=data["grams_joint"],
+            grams_piece=data["grams_piece"],
+            order_number=order_number,
         )
         save(shop_to_price)
         invalidateShopCache(shop_to_price.shop_id)
