@@ -38,7 +38,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("Show all flavors.")
 class FlavorResourceList(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(flavor_serializer)
     @api.doc(parser=parser)
     def get(self):
@@ -65,7 +65,7 @@ class FlavorResourceList(Resource):
 @api.route("/<id>")
 @api.doc("Flavor detail operations.")
 class FlavorResource(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(flavor_serializer)
     def get(self, id):
         """List Flavor"""

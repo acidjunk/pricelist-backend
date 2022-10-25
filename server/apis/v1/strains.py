@@ -32,7 +32,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("Show all strains.")
 class StrainResourceList(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(strain_serializer)
     @api.doc(parser=parser)
     def get(self):
@@ -45,7 +45,7 @@ class StrainResourceList(Resource):
         query_result, content_range = query_with_filters(Strain, Strain.query, range, sort, filter)
         return query_result, 200, {"Content-Range": content_range}
 
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @api.expect(strain_serializer)
     @api.marshal_with(strain_serializer)
     def post(self):
@@ -58,14 +58,14 @@ class StrainResourceList(Resource):
 @api.route("/<id>")
 @api.doc("Strain detail operations.")
 class StrainResource(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(strain_serializer)
     def get(self, id):
         """List Strain"""
         item = load(Strain, id)
         return item, 200
 
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @api.expect(strain_serializer)
     @api.marshal_with(strain_serializer)
     def put(self, id):

@@ -137,7 +137,7 @@ class ShopAllowedIpListRemove(Resource):
 @api.route("/")
 @api.doc("Show all shops.")
 class ShopResourceList(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(shop_serializer)
     def get(self):
         """List Shops"""

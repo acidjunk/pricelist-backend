@@ -81,6 +81,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("Show all products.")
 class ProductResourceList(Resource):
+    @roles_accepted("admin", "employee")
     @marshal_with(product_serializer_with_relations)
     @api.doc(parser=parser)
     def get(self):
@@ -107,7 +108,7 @@ class ProductResourceList(Resource):
 
         return query_result, 200, {"Content-Range": content_range}
 
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @api.expect(product_serializer)
     @api.marshal_with(product_serializer)
     def post(self):
@@ -124,6 +125,7 @@ detail_parser.add_argument("shop", location="args", help="Optional shop id")
 @api.route("/<id>")
 @api.doc("Product detail operations.")
 class ProductResource(Resource):
+    @roles_accepted("admin", "employee")
     @marshal_with(product_serializer_with_relations)
     @api.doc(parser=detail_parser)
     def get(self, id):
@@ -163,7 +165,7 @@ class ProductResource(Resource):
 
         return item, 200
 
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @api.expect(product_serializer)
     @api.marshal_with(product_serializer)
     def put(self, id):

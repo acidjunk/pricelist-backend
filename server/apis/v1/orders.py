@@ -172,7 +172,7 @@ def get_first_unavailable_product_name(order_items, shop_id):
 @api.route("/")
 @api.doc("Show all orders.")
 class OrderResourceList(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(order_serializer_with_shop_names)
     @api.doc(parser=parser)
     def get(self):
@@ -240,7 +240,7 @@ class OrderResourceList(Resource):
 @api.route("/<id>")
 @api.doc("Order detail operations.")
 class OrderResource(Resource):
-    # @roles_accepted("admin", "employee")
+    @roles_accepted("admin", "employee")
     @marshal_with(order_serializer_with_shop_names)
     def get(self, id):
         """List Order"""
@@ -291,7 +291,7 @@ class OrderResource(Resource):
 @api.route("/shop/<shop_id>/pending")
 @api.doc("Show all pending orders per shop.")
 class PendingOrderResourceList(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(order_serializer_with_shop_names)
     @api.doc(parser=parser)
     def get(self, shop_id):
@@ -313,7 +313,7 @@ class PendingOrderResourceList(Resource):
 @api.route("/shop/<shop_id>/complete")
 @api.doc("Show all complete orders per shop.")
 class CompletedOrderResourceList(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(order_serializer_with_shop_names)
     @api.doc(parser=parser)
     def get(self, shop_id):
