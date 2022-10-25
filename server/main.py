@@ -45,7 +45,7 @@ from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_security import Security, user_registered
 from form import create_product_form, create_strain_form
-from pydantic_forms.core import register_form, start_form, list_forms
+from pydantic_forms.core import list_forms, register_form, start_form
 from pydantic_forms.exceptions import FormNotCompleteError, FormValidationError
 from pydantic_forms.types import JSON
 from security import ExtendedJSONRegisterForm, ExtendedRegisterForm
@@ -102,7 +102,7 @@ app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME") if os.getenv("MAIL_USER
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD") if os.getenv("MAIL_PASSWORD") else "somepassword"
 
 # Needed for Forms to not mess up form order
-app.config['JSON_SORT_KEYS'] = False
+app.config["JSON_SORT_KEYS"] = False
 
 app.config["FRONTEND_URI"] = os.getenv("FRONTEND_URI") if os.getenv("FRONTEND_URI") else "www.example.com"
 # Todo: check if we can fix this without completely disabling it: it's only needed when login request is not via .json
@@ -401,6 +401,17 @@ admin.add_view(BaseAdminView(ShopToPrice, db.session))
 
 migrate = Migrate(app, db)
 logger.info("Ready loading admin views and api")
+
+
+@app.cli.command("fix-sort")
+def fix_sort():
+    categories = Category.query.all()
+    for category in categories:
+        print(f"Ordering for {category.name}")
+        prices = ShopToPrice.query.filter_by(category_id=category.id).all()
+        for count, price in enumerate(prices):
+            price.order_number = count
+
 
 if __name__ == "__main__":
     app.run()

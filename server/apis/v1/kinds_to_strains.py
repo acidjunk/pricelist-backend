@@ -34,6 +34,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("KindToStrain relations")
 class KindsToStrainsResourceList(Resource):
+    @roles_accepted("admin", "employee")
     @marshal_with(kind_to_strain_serializer)
     @api.doc(parser=parser)
     def get(self):
@@ -46,7 +47,7 @@ class KindsToStrainsResourceList(Resource):
         query_result, content_range = query_with_filters(KindToStrain, KindToStrain.query, range, sort, filter)
         return query_result, 200, {"Content-Range": content_range}
 
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @api.expect(kind_to_strain_serializer)
     @api.marshal_with(kind_to_strain_serializer)
     def post(self):
@@ -81,14 +82,14 @@ class KindsToStrainsResourceList(Resource):
 @api.route("/<id>")
 @api.doc("KindToStrain detail operations.")
 class KindsToStrainsResource(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(kind_to_strain_serializer)
     def get(self, id):
         """List KindToStrain"""
         item = load(KindToStrain, id)
         return item, 200
 
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @api.expect(kind_to_strain_serializer)
     @api.marshal_with(kind_to_strain_serializer)
     def put(self, id):

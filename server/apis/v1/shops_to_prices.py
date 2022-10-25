@@ -35,6 +35,8 @@ shop_to_price_serializer = api.model(
         "use_five": fields.Boolean(default=True, description="Use the price for 5g?"),
         "use_joint": fields.Boolean(default=True, description="Use the price for joint?"),
         "use_piece": fields.Boolean(default=True, description="Use the price for piece?"),
+        "grams_joint": fields.Float(default=0),
+        "grams_piece": fields.Float(default=0),
     },
 )
 
@@ -59,6 +61,8 @@ shop_to_price_serializer_with_prices = {
     "joint": fields.Float(description="Price for one joint"),
     "use_piece": fields.Boolean(default=True, description="Show the price for one piece?"),
     "piece": fields.Float(description="Price for one item"),
+    "grams_joint": fields.Float(default=0),
+    "grams_piece": fields.Float(default=0),
     "created_at": fields.DateTime(description="Creation date"),
     "modified_at": fields.DateTime(description="Last modification date"),
 }
@@ -78,6 +82,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("ShopsToPrices")
 class ShopsToPricesResourceList(Resource):
+    @roles_accepted("admin", "employee")
     @marshal_with(shop_to_price_serializer_with_prices)
     @api.doc(parser=parser)
     def get(self):
@@ -101,7 +106,7 @@ class ShopsToPricesResourceList(Resource):
 
         return query_result, 200, {"Content-Range": content_range}
 
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @api.expect(shop_to_price_serializer)
     @api.marshal_with(shop_to_price_serializer)
     def post(self):
@@ -124,6 +129,7 @@ class ShopsToPricesResourceList(Resource):
         if (product and kind) or not product and not kind:
             abort(400, "One Cannabis or one Horeca product has to be provided")
 
+        order_number = 0
         if kind:
             check_query = (
                 ShopToPrice.query.filter_by(shop_id=shop.id)
@@ -143,6 +149,8 @@ class ShopsToPricesResourceList(Resource):
             )
             if len(check_query) > 0:
                 abort(409, "Relation already exists")
+            amount_of_products = ShopToPrice.query.filter_by(shop_id=shop.id).filter_by(category_id=category.id).count()
+            order_number = amount_of_products + 1
 
         data = api.payload
         shop_to_price = ShopToPrice(
@@ -160,6 +168,9 @@ class ShopsToPricesResourceList(Resource):
             use_five=data["use_five"] if data.get("use_five") else False,
             use_joint=data["use_joint"] if data.get("use_joint") else False,
             use_piece=data["use_piece"] if data.get("use_piece") else False,
+            grams_joint=data["grams_joint"],
+            grams_piece=data["grams_piece"],
+            order_number=order_number,
         )
         save(shop_to_price)
         invalidateShopCache(shop_to_price.shop_id)
@@ -169,7 +180,7 @@ class ShopsToPricesResourceList(Resource):
 @api.route("/<id>")
 @api.doc("ShopToPrice detail operations.")
 class ShopToPriceResource(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(shop_to_price_serializer_with_prices)
     def get(self, id):
         """List ShopToPrice"""
@@ -183,7 +194,7 @@ class ShopToPriceResource(Resource):
         item.piece = price.piece if price.piece else None
         return item, 200
 
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @api.expect(shop_to_price_serializer)
     @api.marshal_with(shop_to_price_serializer)
     def put(self, id):
@@ -207,7 +218,7 @@ class ShopToPriceResource(Resource):
         invalidateShopCache(item.shop_id)
         return item, 201
 
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     def delete(self, id):
         """Delete ShopToPrice"""
         item = load(ShopToPrice, id)
@@ -218,8 +229,7 @@ class ShopToPriceResource(Resource):
 
 @api.route("/availability/<string:id>")
 class ShopToPriceAvailability(Resource):
-    @roles_accepted("admin")
-    # @roles_accepted("employee")
+    @roles_accepted("admin", "employee")
     @api.expect(shop_to_price_availability_serializer)
     def put(self, id):
         shop_to_price = ShopToPrice.query.filter_by(id=id).first()

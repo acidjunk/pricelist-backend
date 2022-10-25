@@ -69,8 +69,7 @@ def create_product_form(current_state: dict) -> FormGenerator:
     StrainChoice = Choice(
         "StrainChoice",
         zip(
-            [str(strain.id) for strain in strains],
-            [(str(strain.id), strain.name) for strain in strains],
+            [str(strain.id) for strain in strains], [(str(strain.id), strain.name) for strain in strains],
         ),  # type: ignore
     )
 
@@ -106,7 +105,9 @@ def create_product_form(current_state: dict) -> FormGenerator:
             data = summary_data(user_input_dict)
 
         summary: Summary
-        warning: str = ReadOnlyField("Je kan (nog) geen producten bewerken. Zie je nu een 'typo' ga dan terug naar het vorige formulier en pas het aan.")
+        warning: str = ReadOnlyField(
+            "Je kan (nog) geen producten bewerken. Zie je nu een 'typo' ga dan terug naar het vorige formulier en pas het aan."
+        )
 
     _ = yield SummaryForm
 

@@ -21,7 +21,7 @@ pip install -r requirements/all.txt
 
 ## When deploying with zappa
 
-Currently, the best version to use is python37
+Currently, the best version to use is python39
 
 ## Configuration
 
@@ -66,7 +66,7 @@ PYTHONPATH=. PASSWORD=yourpass EMAIL=admin@example.com python client_examples/lo
 
 ## Deploy notes
 
-Python 3.8 for now.
+Python 3.9 for now.
 
 Take care to manually install psycopg-binary as described in improviser README.md
 Note: A list of exact deps is avail in `requirements/`

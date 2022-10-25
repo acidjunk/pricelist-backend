@@ -96,6 +96,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("Show all kinds.")
 class KindResourceList(Resource):
+    @roles_accepted("admin", "employee")
     @marshal_with(kind_serializer_with_relations)
     @api.doc(parser=parser)
     def get(self):
@@ -134,7 +135,7 @@ class KindResourceList(Resource):
 
         return query_result, 200, {"Content-Range": content_range}
 
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @api.expect(kind_serializer)
     @api.marshal_with(kind_serializer)
     def post(self):
@@ -151,6 +152,7 @@ detail_parser.add_argument("shop", location="args", help="Optional shop id")
 @api.route("/<id>")
 @api.doc("Kind detail operations.")
 class KindResource(Resource):
+    @roles_accepted("admin", "employee")
     @marshal_with(kind_serializer_with_relations)
     @api.doc(parser=detail_parser)
     def get(self, id):
@@ -208,7 +210,7 @@ class KindResource(Resource):
 
         return item, 200
 
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @api.expect(kind_serializer)
     @api.marshal_with(kind_serializer)
     def put(self, id):

@@ -48,7 +48,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("MainCategories list and create.")
 class MainCategoryResourceList(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(main_category_serializer_with_shop_names)
     @api.doc(parser=parser)
     def get(self):
@@ -78,7 +78,7 @@ class MainCategoryResourceList(Resource):
 @api.route("/<id>")
 @api.doc("MainCategory detail operations.")
 class MainCategoryResource(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(main_category_serializer_with_shop_names)
     def get(self, id):
         """List MainCategory"""

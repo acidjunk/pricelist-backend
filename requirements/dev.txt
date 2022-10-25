@@ -1,7 +1,7 @@
 -r base.txt
 # Code style
 autoflake
-black
+black==19.10b0
 colorama
 ipython
 isort

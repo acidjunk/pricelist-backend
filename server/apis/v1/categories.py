@@ -59,7 +59,7 @@ parser.add_argument("filter", location="args", help="Filter default=[]")
 @api.route("/")
 @api.doc("Show all categories.")
 class CategoryResourceList(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(category_serializer_with_shop_names)
     @api.doc(parser=parser)
     def get(self):
@@ -91,7 +91,7 @@ class CategoryResourceList(Resource):
 @api.route("/<id>")
 @api.doc("Category detail operations.")
 class CategoryResource(Resource):
-    @roles_accepted("admin")
+    @roles_accepted("admin", "employee")
     @marshal_with(category_serializer_with_shop_names)
     def get(self, id):
         """List Category"""
