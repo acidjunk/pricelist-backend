@@ -168,8 +168,8 @@ class ShopsToPricesResourceList(Resource):
             use_five=data["use_five"] if data.get("use_five") else False,
             use_joint=data["use_joint"] if data.get("use_joint") else False,
             use_piece=data["use_piece"] if data.get("use_piece") else False,
-            grams_joint=data["grams_joint"],
-            grams_piece=data["grams_piece"],
+            # grams_joint=data["grams_joint"] if data.get("grams_joint") else 0.4,
+            # grams_piece=data["grams_piece"] if data.get("grams_piece") else 0.2,
             order_number=order_number,
         )
         save(shop_to_price)

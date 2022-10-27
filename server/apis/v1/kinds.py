@@ -152,7 +152,6 @@ detail_parser.add_argument("shop", location="args", help="Optional shop id")
 @api.route("/<id>")
 @api.doc("Kind detail operations.")
 class KindResource(Resource):
-    @roles_accepted("admin", "employee")
     @marshal_with(kind_serializer_with_relations)
     @api.doc(parser=detail_parser)
     def get(self, id):

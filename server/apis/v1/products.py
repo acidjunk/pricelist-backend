@@ -125,7 +125,6 @@ detail_parser.add_argument("shop", location="args", help="Optional shop id")
 @api.route("/<id>")
 @api.doc("Product detail operations.")
 class ProductResource(Resource):
-    @roles_accepted("admin", "employee")
     @marshal_with(product_serializer_with_relations)
     @api.doc(parser=detail_parser)
     def get(self, id):
