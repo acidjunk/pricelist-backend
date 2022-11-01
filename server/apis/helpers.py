@@ -156,7 +156,7 @@ def query_with_filters(
                 elif column.endswith("_ne"):
                     query = query.filter(model.__dict__[column[:-3]] != searchPhrase)
                 elif column == "id":
-                    query = query.filter_by(id=searchPhrase)
+                    query = query.filter(cast(model.__dict__["id"], String).ilike("%" + searchPhrase + "%"))
                 elif column == "q":
                     logger.debug(
                         "Activating multi kolom filter", column=column, quick_search_columns=quick_search_columns
