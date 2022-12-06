@@ -409,8 +409,13 @@ def fix_sort():
     for category in categories:
         print(f"Ordering for {category.name}")
         prices = ShopToPrice.query.filter_by(category_id=category.id).all()
-        for count, price in enumerate(prices):
-            price.order_number = count
+        counter = 0
+        for price in prices:
+            if price.product_id:
+                price.order_number = counter
+                counter += 1
+            else:
+                price.order_number = -1
 
 
 if __name__ == "__main__":
